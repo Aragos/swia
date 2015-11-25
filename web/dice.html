@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SW: IA Dice Calculator</title>
+  <link rel="stylesheet" href="dice.css" type="text/css" />
+</head>
+<body>
+  <script src="jquery.js"></script>
+  <script src="jquery-ui.js"></script>
+  <script src="dice.js"></script>
+  <h1>SW: IA Dice Calculator</h1>
+  <div id="dice-source">
+    <div class="red-die die source-die"></div>
+    <div class="green-die die source-die"></div>
+    <div class="blue-die die source-die"></div>
+    <div class="yellow-die die source-die"></div>
+    <div class="black-die die source-die"></div>
+    <div class="white-die die source-die"></div>
+  </div>
+  <div id="dice-target">
+    <span id="dice-placeholder">Drop dice here</span>
+  </div>
+
+  <!-- TODO: die modifiers -->
+  <div id="probabilities">
+    <div>Results</div>
+  </div>
+
+  <script>
+    setupDrops();
+  </script>
+
+</body>
+</html>

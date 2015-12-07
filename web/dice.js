@@ -234,7 +234,19 @@ function decreaseCount(id) {
   $(id).text(Math.max(0, parseInt($(id).text()) - 1));
 }
 
+/**
+ * Calculates the cumulative probability for at least N damage, for all damage counts possible with
+ * the given dice and modifiers.
+ *
+ * @param dice object of dice count, indexed by color (color name -> int)
+ * @param modifiers object of modifiers, indexed by modifier name (modifier name -> int)
+ * @param surgeAbilities array of surge ability objects, each consuming a single surge and yielding
+ *    the specified modifiers (modifier name -> int)
+ * @param distance int representing the ranged distance to target
+ * @returns damage count (int) to damage probability mapping (float between 0 and 1)
+ */
 function calculateDamage(dice, modifiers, surgeAbilities, distance) {
+  // TODO: Implement.
   return {
     1:.91,
     2: .9,

@@ -103,6 +103,7 @@ function setupSurgeSource() {
 }
 
 function makeSurgeDraggable() {
+  // TODO: Only allow dragging (and drag cursor) when there are non-zero values on surge?
   $("#surge-source")
       .draggable({
         appendTo: "body",

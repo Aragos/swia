@@ -16,7 +16,7 @@ h1 {
   margin-right: auto;
 }
 
-.element, .surge-element, #pin {
+.element, .surge-element, #pin { /* basic element dimensions */
   width: 45px;
   height: 45px;
   border-radius: 8px;
@@ -25,13 +25,18 @@ h1 {
   line-height: 45px; /* == height to center line vertically */
 }
 
+#dice-source .element, #attack-modifiers .element, #defense-modifiers .element,
+    .surge-element { /* element styling outside target */
+  border: 1px solid #555;
+  cursor: alias;
+}
+
 #dice-source {
   height: 52px; /* 1 * top element margin + element height + 2 * element border */
 }
 
 #dice-source .element {
   margin: 5px 0 0 5px;
-  border: 1px solid #555;
 }
 
 #target {
@@ -47,6 +52,7 @@ h1 {
 #target .element {
   margin: 5px 0 0 5px;
   border: 1px solid #ddd;
+  cursor: default;
 }
 
 #attack-modifiers, #defense-modifiers {
@@ -60,7 +66,6 @@ h1 {
 
 #attack-modifiers .element {
   margin: 5px 0 0 5px;
-  border: 1px solid #555;
 }
 
 #defense-modifiers {
@@ -88,7 +93,6 @@ h1 {
 
 .surge-source .surge-element {
   margin: 1px 0 0 1px;
-  border: 1px solid #555;
 }
 
 #surge-label, .surge-count, .surge-source {
@@ -97,9 +101,10 @@ h1 {
 }
 
 #surge-label, .surge-count {
- height: 49px; /* 2 * surge element top margin + 1 * surge element height + 2 * surge element border */
- line-height: 49px; /* == height to center line vertically */
- font-weight: bold;
+  height: 49px; /* 2 * surge element top margin + 1 * surge element height + 2 * surge element border */
+  line-height: 49px; /* == height to center line vertically */
+  font-weight: bold;
+  cursor: alias;
 }
 
 #surge-label {
@@ -107,9 +112,9 @@ h1 {
 }
 
 .surge-count {
-  /* 28= (surge source width - (4 * element left margin + 3 element width + 6 * element border + surge label width)) / 3 */
-  width: 24px;
+  width: 23px;
   text-align: right;
+  margin: 0 1px 0 0;
 }
 
 .surge-element {
@@ -117,7 +122,7 @@ h1 {
 }
 
 #compiled-surge-template {
-  display:none;
+  display: none;
 }
 
 .compiled-surge-item {
@@ -140,6 +145,7 @@ h1 {
   background-color: #fdae6b;
   margin: 2px 0 0 5px;
   border: 1px solid #555;
+  cursor: default;
 }
 
 /* Dice */
@@ -191,6 +197,7 @@ h1 {
   background-color: #fdae6b;
   float: left;
   border-radius: 8px;
+  cursor: default;
 }
 
 #ranged-plus {
@@ -210,5 +217,6 @@ h1 {
   margin: 5px 0 5px 0;
   float: left;
   font-size:120%;
+  cursor: default;
 }
 

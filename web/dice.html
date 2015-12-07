@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=350, initial-scale=1">
   <title>SW: IA Dice Calculator</title>
   <link rel="stylesheet" href="dice.css" type="text/css" />
 </head>
@@ -9,26 +10,106 @@
   <script src="jquery.js"></script>
   <script src="jquery-ui.js"></script>
   <script src="dice.js"></script>
+  <script src="jquery.ui.touch-punch.js"></script>
+
   <h1>SW: IA Dice Calculator</h1>
-  <div id="dice-source">
-    <div class="red-die die source-die"></div>
-    <div class="green-die die source-die"></div>
-    <div class="blue-die die source-die"></div>
-    <div class="yellow-die die source-die"></div>
-    <div class="black-die die source-die"></div>
-    <div class="white-die die source-die"></div>
+
+  <div id="dice-source" class="whole-width">
+    <div class="red-die die source-die element"></div>
+    <div class="green-die die source-die element"></div>
+    <div class="blue-die die source-die element"></div>
+    <div class="yellow-die die source-die element"></div>
+    <div class="black-die die source-die element"></div>
+    <div class="white-die die source-die element"></div>
   </div>
-  <div id="dice-target">
-    <span id="dice-placeholder">Drop dice here</span>
+  <div class="whole-width">
+    <div id="attack-modifiers">
+      <div class="modifier attack-modifier element surge-modifier">
+        Srg
+      </div>
+      <div class="modifier attack-modifier element damage-modifier">
+        Dmg
+      </div>
+      <div class="modifier attack-modifier element pierce-modifier">
+        Prc
+      </div>
+      <div class="modifier attack-modifier element accuracy-modifier">
+        Acc
+      </div>
+    </div>
+    <div id="target">
+      <span id="target-placeholder">Drop dice & modifiers here</span>
+    </div>
+    <div id="defense-modifiers">
+      <div class="modifier defense-modifier element block-modifier">
+        Blk
+      </div>
+      <div class="modifier defense-modifier element evade-modifier">
+        Evd
+      </div>
+    </div>
+    <div id="ranged-dial">
+      <div id="ranged-plus" class="ranged-button">
+        +
+      </div>
+      <div id="ranged-value">
+        0
+      </div>
+      <div id="ranged-minus" class="ranged-button">
+        -
+      </div>
+    </div>
   </div>
 
-  <!-- TODO: die modifiers -->
-  <div id="probabilities">
+  <div class="whole-width">
+    <div id="surge-source" class="surge-source">
+      <div id="surge-label">
+        Srg:
+      </div>
+      <div id="surge-damage-count" class="surge-count">
+        0
+      </div>
+      <div class="surge-element damage-modifier">
+        Dmg
+      </div>
+      <div id="surge-pierce-count" class="surge-count">
+        0
+      </div>
+      <div class="surge-element pierce-modifier">
+        Prc
+      </div>
+      <div id="surge-accuracy-count" class="surge-count">
+        0
+      </div>
+      <div class="surge-element accuracy-modifier">
+        Acc
+      </div>
+    </div>
+    <div id="pin">
+      Pin
+    </div>
+  </div>
+
+  <div id="probabilities" class="whole-width">
     <div>Results</div>
+  </div>
+
+  <div id="compiled-surge-template" class="element compiled-surge">
+    <div class="compiled-surge-item compiled-surge-label">~:</div>
+    <div class="compiled-surge-item compiled-surge-damage">
+      <span class="compiled-surge-damage-count">0</span>@
+    </div>
+    <div class="compiled-surge-item compiled-surge-pierce">
+      <span class="compiled-surge-pierce-count">0</span>P
+    </div>
+    <div class="compiled-surge-item compiled-surge-accuracy">
+      <span class="compiled-surge-accuracy-count">0</span>A
+    </div>
   </div>
 
   <script>
     setupDrops();
+    setupRanged();
   </script>
 
 </body>

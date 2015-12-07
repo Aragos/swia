@@ -1,5 +1,5 @@
 body {
-  background-color: #ddd;
+  background-color: #bbb;
   font-family: Helvetica, Arial, sans-serif;
   font-size: 10pt;
   color: #888;
@@ -19,67 +19,76 @@ h1 {
 .element, .surge-element, #pin {
   width: 45px;
   height: 45px;
-  border: 1px solid #555;
   border-radius: 8px;
   float: left;
   text-align: center;
   line-height: 45px; /* == height to center line vertically */
 }
 
-#dice-source, #probabilities {
-  margin-top: 5px;
+#dice-source {
+  height: 52px; /* 1 * top element margin + element height + 2 * element border */
 }
 
-#dice-source {
-  height: 52px; /* 1 * top die margin + die height + 2 * die border */
+#dice-source .element {
+  margin: 5px 0 0 5px;
+  border: 1px solid #555;
 }
 
 #target {
-  height: 213px; /* 5 * top die margin + 4 * die height + 8 * die border */
+  height: 213px; /* 5 * top element margin + 4 * element height + 8 * element border */
   text-align: center;
   line-height: 213px; /* == height to vertically center text */
   float: left;
-  width: 213px; /* 5 * die left margin + 4 * die-width + 8 * die border */
-  /* border: 1px solid #555; */
+  width: 213px; /* 5 * element left margin + 4 * element-width + 8 * element border */
   border-radius: 5px;
   background-color: #eee;
 }
 
+#target .element {
+  margin: 5px 0 0 5px;
+  border: 1px solid #ddd;
+}
+
 #attack-modifiers, #defense-modifiers {
   float: left;
-  width: 52px; /* == 1 * left die margin + die width + 2 * die border */
+  width: 52px; /* == 1 * horizontal element margin + element width + 2 * element border */
 }
 
 #attack-modifiers {
-    height: 213px; /* 5 * top die margin + 4 * die height + 8 * die border */
+  height: 213px; /* 5 * top element margin + 4 * element height + 8 * element border */
+}
+
+#attack-modifiers .element {
+  margin: 5px 0 0 5px;
+  border: 1px solid #555;
 }
 
 #defense-modifiers {
-  height: 109px; /* == 3 * top modifier margin + 2 * modifier height + 4 * modifier border */
+  height: 109px; /* == 3 * top element margin + 2 * element height + 4 * element border */
 }
 
-/* Modifiers */
+#defense-modifiers .element {
+  margin: 5px 5px 0 0;
+  border: 1px solid #555;
+}
+
 .modifier {
   background-color: #fff;
-  text-align: center;
-  line-height: 45px;
-}
-
-.defense-modifier, #pin {
-  margin: 5px 0 0 0;
-}
-
-.attack-modifier, .center-modifier, .die, .surge-modifier {
-  margin: 5px 0 0 5px;
 }
 
 /* Surge */
 .surge-source {
-  height: 57px; /* 2 * top modifier margin + modifier height + 2 * modifier border */
-  width: 265px; /* 6 * modifier left margin + 5 modifier width + 10 * modifier border [-10, why?!] */
+  height: 49px; /* 2 * vertical surge element margin + surge element height + 2 * surge element border */
+  width: 254px; /* 4 * horizontal surge element margin + 3 * surge element width + 6 * surge element border + 3 * surge count width + surge label width */
   border: 1px solid #555;
   border-radius: 8px;
   background-color: #fff;
+  margin: 0 0 0 5px;
+}
+
+.surge-source .surge-element {
+  margin: 1px 0 0 1px;
+  border: 1px solid #555;
 }
 
 #surge-label, .surge-count, .surge-source {
@@ -88,18 +97,18 @@ h1 {
 }
 
 #surge-label, .surge-count {
- height: 57px; /* 2 * modifier top margin + 1 * modifier height + 2 * modifier border */
- line-height: 57px; /* == height to center line vertically */
+ height: 49px; /* 2 * surge element top margin + 1 * surge element height + 2 * surge element border */
+ line-height: 49px; /* == height to center line vertically */
  font-weight: bold;
 }
 
 #surge-label {
-  width: 30px;
+  width: 37px;
 }
 
 .surge-count {
-  /* 28= (surge source width - (4 * modifier left margin + 3 modifier width + 6 * modifier border + surge label width)) / 3 */
-  width: 25px;
+  /* 28= (surge source width - (4 * element left margin + 3 element width + 6 * element border + surge label width)) / 3 */
+  width: 24px;
   text-align: right;
 }
 
@@ -129,6 +138,8 @@ h1 {
 /* Pin */
 #pin {
   background-color: #fdae6b;
+  margin: 2px 0 0 5px;
+  border: 1px solid #555;
 }
 
 /* Dice */
@@ -158,24 +169,20 @@ h1 {
 
 /* probabilities */
 #probabilities {
-  height: 60px; /* 3 * top die margin + 2 * die height + 4 * die border */
+  height: 60px;
   text-align: center;
   clear: both;
-}
-
-#probabilities div {
-  margin: 10px;
 }
 
 /* Ranged */
 #ranged {
   float: left;
   height: 104px; /* == dice target height - defense modifiers height */
-  width: 52px; /* == defense modifier width */
+  width: 52px; /* == defense element width */
 }
 
 .ranged-button {
-  width: 45px; /* == modifier width */
+  width: 45px; /* == element width */
   height: 30px;
   border: 1px solid #555;
   text-align: center;
@@ -195,7 +202,7 @@ h1 {
 }
 
 #ranged-value {
-  width: 45px; /* == modifier width */
+  width: 45px; /* == element width */
   height: 24px;
   font-weight: bold;
   text-align: center;

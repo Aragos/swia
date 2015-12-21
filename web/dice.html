@@ -11,6 +11,7 @@
   <script src="jquery-ui.js"></script>
   <script src="dice.js"></script>
   <script src="jquery.ui.touch-punch.js"></script>
+  <script src="highcharts.js"></script>
 
   <h1>SW: IA Dice Calculator</h1>
 
@@ -90,10 +91,12 @@
     </div>
   </div>
 
-  <div id="probabilities" class="whole-width">
-    <div>Results</div>
+  <div class="whole-width">
+    <div id="chart">
+    </div>
   </div>
 
+  <!-- Hidden template -->
   <div id="compiled-surge-template" class="element compiled-surge">
     <div class="compiled-surge-item compiled-surge-label">~:</div>
     <div class="compiled-surge-item compiled-surge-damage">
@@ -110,6 +113,7 @@
   <script>
     setupDrops();
     setupRanged();
+    setupChart();
   </script>
 
 </body>

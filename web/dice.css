@@ -1,6 +1,6 @@
 body {
   background-color: #bbb;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
   font-size: 10pt;
   color: #888;
 }
@@ -88,7 +88,7 @@ h1 {
   border: 1px solid #555;
   border-radius: 8px;
   background-color: #fff;
-  margin: 0 0 0 5px;
+  margin: 0 0 5px 5px;
 }
 
 .surge-source .surge-element {
@@ -173,12 +173,7 @@ h1 {
   background-color: white;
 }
 
-/* probabilities */
-#probabilities {
-  height: 60px;
-  text-align: center;
-  clear: both;
-}
+
 
 /* Ranged */
 #ranged {
@@ -220,3 +215,11 @@ h1 {
   cursor: default;
 }
 
+/* chart */
+#chart {
+  margin: 5px 5px 0 5px;
+  border-radius: 5px;
+  height: 180px;
+  clear: both;
+  background-color: #eee;
+}

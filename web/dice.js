@@ -285,6 +285,18 @@ function compareByCount(a, b) {
 }
 
 /**
+ * Map from die color name (e.g. "yellow") to an int array, which, for each index,
+ * array[i] is the number of sides of that color die that have i pow symbols.
+ * For example, a die which has only one pow symbol will be represented by [5, 1].
+ */
+var ATTACK_DIE_POWS = {
+  "red" : [0, 1, 3, 2],
+  "blue" : [1, 3, 2],
+  "green" : [1, 2, 3],
+  "yellow" : [2, 3, 1]
+}
+
+/**
  * Calculates the cumulative probability for at least N damage, for all damage counts possible with
  * the given dice and modifiers.
  *
@@ -300,12 +312,48 @@ function compareByCount(a, b) {
  */
 function calculateDamage(dice, modifiers, surgeAbilities, distance) {
 
-  // TODO: Implement.
+  // TODO: This currently only works for pow symbols on attack dice. Use accuracy,
+  // range, surges, and defense dice, as well as constant modifiers.
 
-  return [
-    { count: 1, damage: Math.random(), surge: Math.random() * .2 },
-    { count: 3, damage: Math.random(), surge: Math.random() * .2 },
-    { count: 2, damage: Math.random(), surge: Math.random() * .2 },
-    { count: 4, damage: Math.random(), surge: Math.random() * .2 }
-  ];
+  // currentPowOccurrences[i] represents the number of ways given the previously
+  // processed dice can come up with exactly i pows.
+  currentPowOccurrences = [1];
+  // Number of different ways the dice can roll.
+  totalPermutations = 1;
+
+  for (var dieColor in dice) {
+    dieColorPows = ATTACK_DIE_POWS[dieColor];
+    if (typeof dieColorPows !== 'undefined') {
+	  for (var numDiceRemaining = dice[dieColor]; numDiceRemaining > 0; numDiceRemaining--) {
+	    totalPermutations *= 6;
+	    newPowOccurrences = [];
+		for (var currentPowsIndex = 0; currentPowsIndex < currentPowOccurrences.length;
+			currentPowsIndex++) {
+		  for (var dieIndex = 0; dieIndex < dieColorPows.length; dieIndex++) {
+			if ((currentPowsIndex + dieIndex) >= newPowOccurrences.length) {
+				newPowOccurrences[currentPowsIndex + dieIndex] = 0;
+			}
+		    newPowOccurrences[currentPowsIndex + dieIndex] +=
+				dieColorPows[dieIndex] * currentPowOccurrences[currentPowsIndex];
+		  }
+		}
+		currentPowOccurrences = newPowOccurrences;
+	  }
+	}
+  }
+  
+  cdfNumerators = [];
+  for (var i = 0; i < currentPowOccurrences.length; i++) {
+    cdfNumerators[i] = 0;
+	for (var j = i; j < currentPowOccurrences.length; j++) {
+		cdfNumerators[i] += currentPowOccurrences[j];
+	}
+  }
+
+  result = [];
+  for (var i = 0; i < currentPowOccurrences.length; i++) {
+    result.push({ count: i, damage: (cdfNumerators[i] / totalPermutations), surge: 0});
+  }
+
+  return result;
 }

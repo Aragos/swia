@@ -324,20 +324,20 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
   for (var dieColor in dice) {
     dieColorPows = ATTACK_DIE_POWS[dieColor];
     if (typeof dieColorPows !== 'undefined') {
-	  for (var numDiceRemaining = dice[dieColor]; numDiceRemaining > 0; numDiceRemaining--) {
-	    totalPermutations *= 6;
-	    newPowOccurrences = [];
-		for (var currentPowsIndex = 0; currentPowsIndex < currentPowOccurrences.length;
-			currentPowsIndex++) {
-		  for (var dieIndex = 0; dieIndex < dieColorPows.length; dieIndex++) {
-			if ((currentPowsIndex + dieIndex) >= newPowOccurrences.length) {
-				newPowOccurrences[currentPowsIndex + dieIndex] = 0;
-			}
-		    newPowOccurrences[currentPowsIndex + dieIndex] +=
-				dieColorPows[dieIndex] * currentPowOccurrences[currentPowsIndex];
-		  }
-		}
-		currentPowOccurrences = newPowOccurrences;
+      for (var numDiceRemaining = dice[dieColor]; numDiceRemaining > 0; numDiceRemaining--) {
+        totalPermutations *= 6;
+        newPowOccurrences = [];
+        for (var currentPowsIndex = 0; currentPowsIndex < currentPowOccurrences.length;
+            currentPowsIndex++) {
+          for (var dieIndex = 0; dieIndex < dieColorPows.length; dieIndex++) {
+          if ((currentPowsIndex + dieIndex) >= newPowOccurrences.length) {
+            newPowOccurrences[currentPowsIndex + dieIndex] = 0;
+          }
+            newPowOccurrences[currentPowsIndex + dieIndex] +=
+                dieColorPows[dieIndex] * currentPowOccurrences[currentPowsIndex];
+          }
+        }
+        currentPowOccurrences = newPowOccurrences;
 	  }
 	}
   }
@@ -346,7 +346,7 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
   for (var i = 0; i < currentPowOccurrences.length; i++) {
     cdfNumerators[i] = 0;
 	for (var j = i; j < currentPowOccurrences.length; j++) {
-		cdfNumerators[i] += currentPowOccurrences[j];
+	  cdfNumerators[i] += currentPowOccurrences[j];
 	}
   }
 

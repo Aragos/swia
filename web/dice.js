@@ -285,15 +285,103 @@ function compareByCount(a, b) {
 }
 
 /**
- * Map from die color name (e.g. "yellow") to an int array, which, for each index,
- * array[i] is the number of sides of that color die that have i pow symbols.
- * For example, a die which has only one pow symbol will be represented by [5, 1].
+ * Creates and returns a size by size by size 3D array (with 0 values).
  */
-var ATTACK_DIE_POWS = {
-  "red" : [0, 1, 3, 2],
-  "blue" : [1, 3, 2],
-  "green" : [1, 2, 3],
-  "yellow" : [2, 3, 1]
+function array3d(size) {
+  result = [];
+  for (var i = 0; i < size; i++) {
+    result[i] = [];
+    for (var j = 0; j < size; j++) {
+	  result[i][j] = [];
+	  for (var k = 0; k < size; k++) {
+	    result[i][j][k] = 0;
+	  }
+	}
+  }
+  return result;
+}
+
+function redDieDefinition() {
+  result = [
+      { attack: 1, surge: 0, accuracy: 0},
+	  { attack: 2, surge: 0, accuracy: 0},
+	  { attack: 2, surge: 0, accuracy: 0},
+	  { attack: 2, surge: 1, accuracy: 0},
+	  { attack: 3, surge: 0, accuracy: 0},
+	  { attack: 3, surge: 0, accuracy: 0}];
+  return result;
+}
+
+function blueDieDefinition() {
+  result = [
+    { attack: 0, surge: 1, accuracy: 2},
+	{ attack: 1, surge: 0, accuracy: 2},
+	{ attack: 2, surge: 0, accuracy: 3},
+	{ attack: 1, surge: 1, accuracy: 3},
+	{ attack: 2, surge: 0, accuracy: 4},
+	{ attack: 1, surge: 0, accuracy: 5}];
+  return result;
+}
+
+function greenDieDefinition() {
+  result = [
+    { attack: 0, surge: 1, accuracy: 1},
+	{ attack: 1, surge: 1, accuracy: 1},
+	{ attack: 2, surge: 0, accuracy: 1},
+	{ attack: 1, surge: 1, accuracy: 2},
+	{ attack: 2, surge: 0, accuracy: 2},
+	{ attack: 2, surge: 0, accuracy: 3}];
+  return result;
+}
+
+function yellowDieDefinition() {
+  result = [
+    { attack: 0, surge: 1, accuracy: 0},
+	{ attack: 1, surge: 2, accuracy: 0},
+	{ attack: 2, surge: 0, accuracy: 1},
+	{ attack: 1, surge: 1, accuracy: 1},
+	{ attack: 0, surge: 1, accuracy: 2},
+	{ attack: 1, surge: 0, accuracy: 2}];
+  return result;
+}
+
+/**
+ * Map from die color name (e.g. "yellow") to a size-6 array of struct defining the attack, surge,
+ * and accuracy values on one side of the die.
+ */
+var ATTACK_DIE_DEFINITIONS = {
+  "red" : redDieDefinition(),
+  "blue" : blueDieDefinition(),
+  "green" : greenDieDefinition(),
+  "yellow" : yellowDieDefinition()
+}
+
+/*
+ * Below we use a data representation to aid results calculation, called an "outcome" array.
+ * We use a three dimensional array, where arr[i][j][k] is equal to the number of permutations
+ * to roll exactly i pow symbols, j surges, and k accuracy.
+ */
+ 
+/**
+ * Returns the combination of an outcome array and an additional die outcome definition. 
+ * For example, if outcomeArray is the outcome array representing rolling a green and yellow die
+ * together, and dieOutcomes is the die outcome definition representing rolling a single red die,
+ * then this will return the outcome array of rolling a green, yellow, and red die together.
+ */
+function combineOutcomes(outcomeArray, dieOutcomes) {
+  result = array3d(outcomeArray.length);
+  for (var dieOutcomeIndex = 0; dieOutcomeIndex < dieOutcomes.length; dieOutcomeIndex++) {
+  dieOutcome = dieOutcomes[dieOutcomeIndex];
+    for (var i = 0; i + dieOutcome.attack < outcomeArray.length; i++) {
+      for (var j = 0; j + dieOutcome.surge < outcomeArray[i].length; j++) {
+        for (var k = 0; k + dieOutcome.accuracy < outcomeArray[i][j].length; k++) {
+	      result[i + dieOutcome.attack][j + dieOutcome.surge][k + dieOutcome.accuracy] +=
+		      outcomeArray[i][j][k];
+		}
+	  }
+	}
+  }
+  return result;
 }
 
 /**
@@ -312,47 +400,53 @@ var ATTACK_DIE_POWS = {
  */
 function calculateDamage(dice, modifiers, surgeAbilities, distance) {
 
+  // This is a bit of a hack, as it is likely too large to be needed
+  // for most calculations. It is also potentially too small for very large
+  // calculations, yet practical inputs will not reach over 50 of any attribute.
+  outcomesArraySize = 50;
+  
   // TODO: This currently only works for pow symbols on attack dice. Use accuracy,
   // range, surges, and defense dice, as well as constant modifiers.
 
-  // currentPowOccurrences[i] represents the number of ways given the previously
-  // processed dice can come up with exactly i pows.
-  currentPowOccurrences = [1];
+  currentOutcomes = array3d(outcomesArraySize);
+  currentOutcomes[0][0][0] = 1;
   // Number of different ways the dice can roll.
   totalPermutations = 1;
 
   for (var dieColor in dice) {
-    dieColorPows = ATTACK_DIE_POWS[dieColor];
-    if (typeof dieColorPows !== 'undefined') {
+    dieOutcomes = ATTACK_DIE_DEFINITIONS[dieColor];
+    if (typeof dieOutcomes !== 'undefined') {
       for (var numDiceRemaining = dice[dieColor]; numDiceRemaining > 0; numDiceRemaining--) {
         totalPermutations *= 6;
-        newPowOccurrences = [];
-        for (var currentPowsIndex = 0; currentPowsIndex < currentPowOccurrences.length;
-            currentPowsIndex++) {
-          for (var dieIndex = 0; dieIndex < dieColorPows.length; dieIndex++) {
-          if ((currentPowsIndex + dieIndex) >= newPowOccurrences.length) {
-            newPowOccurrences[currentPowsIndex + dieIndex] = 0;
-          }
-            newPowOccurrences[currentPowsIndex + dieIndex] +=
-                dieColorPows[dieIndex] * currentPowOccurrences[currentPowsIndex];
-          }
-        }
-        currentPowOccurrences = newPowOccurrences;
+        newPowOccurrences = combineOutcomes(currentOutcomes, dieOutcomes);
+        currentOutcomes = newPowOccurrences;
 	  }
 	}
   }
-  
+ 
   cdfNumerators = [];
-  for (var i = 0; i < currentPowOccurrences.length; i++) {
+  extraSurgeNumerators = [];
+  for (var i = 0; i < currentOutcomes.length; i++) {
     cdfNumerators[i] = 0;
-	for (var j = i; j < currentPowOccurrences.length; j++) {
-	  cdfNumerators[i] += currentPowOccurrences[j];
-	}
+	extraSurgeNumerators[i] = 0;
+    for (var later_i = i; later_i < currentOutcomes.length; later_i++) {
+	  for (var j = 0; j < currentOutcomes[later_i].length; j++) {
+	    for (var k = 0; k < currentOutcomes[later_i][j].length; k++) {
+		  cdfNumerators[i] += currentOutcomes[later_i][j][k];
+		  // TODO: Actually use surges instead of just counting them as extra surges.
+		  if (j > 0) {
+		    extraSurgeNumerators[i] += currentOutcomes[later_i][j][k];
+		  }
+		}
+      }
+    }
   }
 
   result = [];
-  for (var i = 0; i < currentPowOccurrences.length; i++) {
-    result.push({ count: i, damage: (cdfNumerators[i] / totalPermutations), surge: 0});
+  for (var i = 0; i < currentOutcomes.length; i++) {
+    if (cdfNumerators[i] > 0) {
+      result.push({ count: i, damage: (cdfNumerators[i] / totalPermutations), surge: (extraSurgeNumerators[i] / totalPermutations)});
+	}
   }
 
   return result;

@@ -356,6 +356,62 @@ var ATTACK_DIE_DEFINITIONS = {
   "yellow" : yellowDieDefinition()
 }
 
+/**
+ * Evaluates whether the given attack stats (attack/surge/accuracy struct) with given
+ * surge abilities is capable of doing the given amount of damage.
+ * If there is insufficient power, returns -1.
+ * Otherwise, returns the number of leftover surges to achieve the amount of damage.
+ * For example, if a "~: +2@" surge ability is available with 3 attack and 2 surges, 
+ * this will return 1 for damage=4, and this will return 2 for damage=3.
+ */
+function evaluateDamage(attackStats, surgeAbilities, damage) {
+  // TODO: Use defense stats as well as pierce information.
+  // TODO: Use accuracy.
+  var currentAttack = attackStats.attack;
+  var remainingSurges = attackStats.surge;
+  var remainingSurgeAbilities = surgeAbilities.slice();
+  
+  while (remainingSurges > 0) {
+    if (currentAttack >= damage) {
+	  return remainingSurges;
+	}
+	var surgeAbility = popBestSurgeAbility(remainingSurgeAbilities);
+	if (surgeAbility == null) {
+	  return -1;
+	}
+	remainingSurges--;
+	currentAttack += surgeAbility.damage;
+  }
+  if (currentAttack >= damage) {
+    return 0;
+  } else {
+    return -1;
+  }
+}
+
+/**
+ * Pops and returns the best applicable surge ability from the list of given surge abilities,
+ * Returns null and removes nothing from the list if either the list is empty, or the list
+ * contains only surges that do not actually help the attack.
+ */
+function popBestSurgeAbility(surgeAbilities) {
+  // TODO: Use pierce and accuracy, instead of just attack.
+  var currentBestAbilityIndex = -1;
+  var currentBestAttack = 0;
+  for (var index in surgeAbilities) {
+    var ability = surgeAbilities[index];
+    if (ability.damage > currentBestAttack) {
+	  currentBestAbilityIndex = index;
+	  currentBestAttack = ability.damage;
+	}
+  }
+  if (currentBestAbilityIndex < 0) {
+    return null;
+  } else {
+    return surgeAbilities.splice(currentBestAbilityIndex, 1)[0];
+  }
+}
+
 /*
  * Below we use a data representation to aid results calculation, called an "outcome" array.
  * We use a three dimensional array, where arr[i][j][k] is equal to the number of permutations
@@ -426,16 +482,20 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
  
   cdfNumerators = [];
   extraSurgeNumerators = [];
-  for (var i = 0; i < currentOutcomes.length; i++) {
-    cdfNumerators[i] = 0;
-	extraSurgeNumerators[i] = 0;
-    for (var later_i = i; later_i < currentOutcomes.length; later_i++) {
-	  for (var j = 0; j < currentOutcomes[later_i].length; j++) {
-	    for (var k = 0; k < currentOutcomes[later_i][j].length; k++) {
-		  cdfNumerators[i] += currentOutcomes[later_i][j][k];
-		  // TODO: Actually use surges instead of just counting them as extra surges.
-		  if (j > 0) {
-		    extraSurgeNumerators[i] += currentOutcomes[later_i][j][k];
+  for (var damage = 0; damage < currentOutcomes.length; damage++) {
+    cdfNumerators[damage] = 0;
+	extraSurgeNumerators[damage] = 0;
+    for (var attack = 0; attack < currentOutcomes.length; attack++) {
+	  for (var surge = 0; surge < currentOutcomes[attack].length; surge++) {
+	    for (var accuracy = 0; accuracy < currentOutcomes[attack][surge].length; accuracy++) {
+		  if (currentOutcomes[attack][surge][accuracy] == 0) continue;
+		  var evaluation = evaluateDamage(
+		      {attack:attack, surge:surge, accuracy:accuracy}, surgeAbilities, damage);
+		  if (evaluation >= 0) {
+		    cdfNumerators[damage] += currentOutcomes[attack][surge][accuracy];
+		  }
+		  if (evaluation >= 1) {
+		    extraSurgeNumerators[damage] += currentOutcomes[attack][surge][accuracy];
 		  }
 		}
       }

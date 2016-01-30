@@ -234,10 +234,33 @@ h1 {
   line-height: 45px; /* == height to center line vertically */
 }
 
-#pinned {
+#pinned-area {
   margin: 0 5px 0 0;
-  background-color: white;
-  overflow: auto;
-  height: 52px; /* 1 * top element margin + element height + 2 * element border */
+  /*background-color: white;*/
+  overflow-x: auto;
+  white-space: nowrap;
+  height: 67px; /* 1 * top element margin + element height + 2 * element border + 15 for scroll bar*/
   width: 260px; /* 5 * element width + 5 * element left margin + 10 * element border */
+}
+
+.pinned {
+  background-color: #eee;
+  margin: 0 0 0 5px;
+  border: 1px solid #eee;
+  width: 45px;
+  height: 45px;
+  border-radius: 3px;
+  text-align: center;
+  line-height: 45px; /* == height to center line vertically */
+  display: inline-block;
+}
+
+.pinned-element {
+  margin: 1px 0 0 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  float: left;
+  text-align: center;
+  line-height: 8px;
 }

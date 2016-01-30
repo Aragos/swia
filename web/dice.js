@@ -193,6 +193,28 @@ function setupChart() {
   });
 }
 
+function setupPin() {
+  $("#pin")
+      .click(function() {
+        // TODO: Don't pin empty area
+        // TODO: Don't pin already-pinned configuration
+        var pinned = $("<div class='pinned'></div>");
+        $("#target")
+            .find(".element")
+            .each(function(i, element) {
+              var pinnedElement = $("<div class='pinned-element'></div>");
+              $.each($(element).attr('class').split(/\s+/), function(j, clazz) {
+                if (clazz != "element") {
+                  pinnedElement.addClass(clazz);
+                }
+              });
+              pinnedElement.appendTo(pinned);
+            });
+        pinned.appendTo($("#pinned-area"));
+        
+      });
+}
+
 function updateProbabilities() {
   var dice = getDice();
   var modifiers = getModifiers();

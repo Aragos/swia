@@ -39,18 +39,20 @@ h1 {
   margin: 5px 0 0 5px;
 }
 
+/* Element margins are 5px everywhere else but only 3px inside the target area */
 #target {
-  height: 213px; /* 5 * top element margin + 4 * element height + 8 * element border */
+  height: 203px; /* 5 * top element margin + 4 * element height + 8 * element border */
   text-align: center;
-  line-height: 213px; /* == height to vertically center text */
+  line-height: 203px; /* == height to vertically center text */
   float: left;
-  width: 213px; /* 5 * element left margin + 4 * element-width + 8 * element border */
+  width: 203px; /* 5 * element left margin + 4 * element-width + 8 * element border */
   border-radius: 5px;
   background-color: #eee;
+  margin: 5px;
 }
 
 #target .element {
-  margin: 5px 0 0 5px;
+  margin: 3px 0 0 3px;
   border: 1px solid #ddd;
   cursor: default;
 }

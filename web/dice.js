@@ -194,6 +194,8 @@ function setupChart() {
 }
 
 function setupPin() {
+  // TODO: Include range in pinned (visuals)
+  // TODO: Include re-rolls in pinned
   $("#pin")
       .click(function() {
         // TODO: Don't pin empty area
@@ -208,11 +210,23 @@ function setupPin() {
                   pinnedElement.addClass(clazz);
                 }
               });
+              // TODO: Copy modifier/surge graphics, text
               pinnedElement.appendTo(pinned);
             });
         pinned.appendTo($("#pinned-area"));
-        
+
+        var dice = getDice();
+        var modifiers = getModifiers();
+        var surgeAbilities = getSurgeAbilities();
+        var distance = getDistance();
+        pinned.click(function() {
+          togglePinned(pinned, dice, modifiers, surgeAbilities, distance);
+        });
       });
+}
+
+function togglePinned(pinnedElement, dice, modifiers, surgeAbilities, distance) {
+  if (!pinnedElement) {}
 }
 
 function updateProbabilities() {

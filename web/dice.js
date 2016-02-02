@@ -163,6 +163,7 @@ function setupChart() {
       borderRadius: 5,
       spacing: [8, 2, 2, 2],
       type: "areaspline",
+      animation: false,
     },
     title: {
       text: null,
@@ -180,9 +181,12 @@ function setupChart() {
     xAxis: {
       allowDecimals: false,
       tickInterval: 1,
+      min: 1,
     },
     tooltip: {
       valueSuffix: '%',
+      shared: true,
+      // TODO: Implement more complex formatting function with colors and sorting by value
     },
     legend: {
       enabled: false,
@@ -190,9 +194,21 @@ function setupChart() {
   });
 }
 
+var pinIdsInUse = [];
+function getFreePinId() {
+  for (var i = 0; i < 15; ++i) {
+    if (pinIdsInUse.indexOf(i) == -1) {
+      pinIdsInUse.push(i);
+      return i;
+    }
+  }
+  throw "No more pin IDs"; // TODO: Disable Pin button before this becomes necessary.
+}
+
 function setupPin() {
   // TODO: Include range in pinned (visuals)
   // TODO: Include re-rolls in pinned
+  // TODO: Add clear functionality to remove individual/all pins.
   $("#pin")
       .click(function() {
         // TODO: Don't pin empty area
@@ -212,39 +228,95 @@ function setupPin() {
             });
         pinned.appendTo($("#pinned-area"));
 
-        var dice = getDice();
-        var modifiers = getModifiers();
-        var surgeAbilities = getSurgeAbilities();
-        var distance = getDistance();
-        pinned.click(function() {
-          togglePinned(pinned, dice, modifiers, surgeAbilities, distance);
-        });
+        var pinId = getFreePinId();
+        pinned.css("border-color", CHART_COLORS[pinId]);
+        var chartData = getCurrentChartData();
+        var toggle = function() {
+          togglePinned(pinId, pinned, chartData);
+        };
+        pinned.click(toggle);
+        toggle();
+        removeChart("current");
       });
 }
 
-function togglePinned(pinnedElement, dice, modifiers, surgeAbilities, distance) {
-  if (!pinnedElement) {
+function togglePinned(pinId, pinned, chartData) {
+  if (pinned.hasClass("pinned-active")) {
+    removeChart(pinId);
+    pinned.addClass("pinned-inactive");
+    pinned.removeClass("pinned-active");
+  } else {
+    setChartData(pinId, chartData);
+    pinned.addClass("pinned-active");
+    pinned.removeClass("pinned-inactive");
   }
 }
 
 var CHART_COLORS = {
   current: "black",
-  0: "green",
-  1: "red",
-  2: "orange",
-  3: "blue",
-  4: "yellow",
+  0: "#1f77b4",
+  1: "#ff7f0e",
+  2: "#2ca02c",
+  3: "#d62728",
+  4: "#9467bd",
+  5: "#8c564b",
+  6: "#e377c2",
+  7: "#7f7f7f",
+  8: "#bcbd22",
+  9: "#17becf",
+  10: "#393b79",
+  11: "#637939",
+  12: "#8c6d31",
+  13: "#ad494a",
+  14: "#a55194",
 };
 
-function setChartData(prefix, chartData) {
+/**
+ * Aligns the right end of all series by filling shorter series with zero values up to the length
+ * of the longest series. If a series was removed, ensures that for at least one series the
+ * right-most value is greater than zero (removing zero values from all series at higher x indices).
+ *
+ * <p>Note: The chart must be redrawn prior to this calculation, as series return their last-drawn
+ * data. After this method completes, another redraw is necessary to materialize changes in the
+ * chart.
+ */
+function justifySeries(damageChart) {
+  var maxPoints = 0;
+
+  for (var i = 0; i < damageChart.series.length; ++i) {
+    for (var j = 0; j < damageChart.series[i].data.length; ++j) {
+      if (damageChart.series[i].data[j].y != 0) {
+        if (maxPoints < j+1) {
+          maxPoints = j+1;
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < damageChart.series.length; ++i) {
+    if (damageChart.series[i].data.length < maxPoints) {
+      for (var k = damageChart.series[i].data.length; k < maxPoints; ++k) {
+        damageChart.series[i].addPoint([k, 0], false);
+      }
+    } else if (damageChart.series[i].data.length > maxPoints) {
+      var length = damageChart.series[i].data.length;
+      for (k = length; k >= maxPoints; --k) {
+        damageChart.series[i].removePoint(k, false);
+      }
+    }
+  }
+}
+
+function setChartData(suffix, chartData) {
   var damageChart = $("#chart").highcharts();
-  var damage = damageChart.get("damage-" + prefix);
-  var surge = damageChart.get("surge-" + prefix);
+  var damage = damageChart.get("damage-" + suffix);
+  var surge = damageChart.get("surge-" + suffix);
   if (!damage) {
+    var color = CHART_COLORS[suffix];
     damage = damageChart.addSeries({
-      id: "damage-" + prefix,
+      id: "damage-" + suffix,
       name: "Damage",
-      color: CHART_COLORS[prefix],
+      color: color,
       fillOpacity:.2,
       dashStyle: "Solid",
       lineWidth: 2,
@@ -252,11 +324,15 @@ function setChartData(prefix, chartData) {
         symbol: "circle",
         radius: 3,
       },
+      animation: false,
+      tooltip: {
+        pointFormat: "<b>{series.name}: {point.y}</b><br/>"
+      },
     }, false);
     surge = damageChart.addSeries({
-      id: "surge-" + prefix,
+      id: "surge-" + suffix,
       name: "Surge",
-      color: CHART_COLORS[prefix],
+      color: CHART_COLORS[suffix],
       dashStyle: "LongDash",
       lineWidth: 1,
       fillOpacity:.01,
@@ -264,26 +340,47 @@ function setChartData(prefix, chartData) {
         symbol: "circle",
         radius: 3,
       },
+      animation: false,
+      tooltip: {
+        pointFormat: "{series.name}: {point.y}<br/>"
+      },
     }, false);
   }
 
-  damage.setData(chartData.damageData);
-  surge.setData(chartData.surgeData);
+  damage.setData(chartData.damageData, false);
+  surge.setData(chartData.surgeData, false);
+
+  damageChart.redraw();
+  justifySeries(damageChart);
+  damageChart.redraw();
 }
 
-function updateProbabilities() {
+function removeChart(prefix) {
+  var damageChart = $("#chart").highcharts();
+  var damage = damageChart.get("damage-" + prefix);
+  var surge = damageChart.get("surge-" + prefix);
+  if (damage) {
+    damage.remove(false);
+    surge.remove(false);
+  }
+
+  damageChart.redraw();
+  justifySeries(damageChart);
+  damageChart.redraw();
+}
+
+function getCurrentChartData() {
   var dice = getDice();
   var modifiers = getModifiers();
   var surgeAbilities = getSurgeAbilities();
   var distance = getDistance();
 
   var probabilitiesByDamage = calculateDamage(dice, modifiers, surgeAbilities, distance);
+  return damageToChartData(probabilitiesByDamage);
+}
 
-  // TODO: Figure out what data is interesting, calculate probabilities
-
-  var chartData = damageToChartData(probabilitiesByDamage);
-
-  setChartData("current", chartData);
+function updateProbabilities() {
+  setChartData("current", getCurrentChartData());
 }
 
 function getDistance() {

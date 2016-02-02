@@ -157,11 +157,12 @@ function setupRanged() {
 }
 
 function setupChart() {
-  damageChart = $('#chart').highcharts({
+  $('#chart').highcharts({
     credits: false,
     chart: {
       borderRadius: 5,
       spacing: [8, 2, 2, 2],
+      type: "areaspline",
     },
     title: {
       text: null,
@@ -171,9 +172,14 @@ function setupChart() {
         text: null,
       },
       labels: {
-        x: 2,
-
-      }
+        x: -2,
+      },
+      max: 100,
+      tickInterval: 10,
+    },
+    xAxis: {
+      allowDecimals: false,
+      tickInterval: 1,
     },
     tooltip: {
       valueSuffix: '%',
@@ -181,15 +187,6 @@ function setupChart() {
     legend: {
       enabled: false,
     },
-    series: [{
-      id: 'damage',
-      name: 'Damage',
-      data: []
-    }, {
-      id: 'surge',
-      name: 'Extra Surge',
-      data: []
-    }]
   });
 }
 
@@ -226,7 +223,52 @@ function setupPin() {
 }
 
 function togglePinned(pinnedElement, dice, modifiers, surgeAbilities, distance) {
-  if (!pinnedElement) {}
+  if (!pinnedElement) {
+  }
+}
+
+var CHART_COLORS = {
+  current: "black",
+  0: "green",
+  1: "red",
+  2: "orange",
+  3: "blue",
+  4: "yellow",
+};
+
+function setChartData(prefix, chartData) {
+  var damageChart = $("#chart").highcharts();
+  var damage = damageChart.get("damage-" + prefix);
+  var surge = damageChart.get("surge-" + prefix);
+  if (!damage) {
+    damage = damageChart.addSeries({
+      id: "damage-" + prefix,
+      name: "Damage",
+      color: CHART_COLORS[prefix],
+      fillOpacity:.2,
+      dashStyle: "Solid",
+      lineWidth: 2,
+      marker: {
+        symbol: "circle",
+        radius: 3,
+      },
+    }, false);
+    surge = damageChart.addSeries({
+      id: "surge-" + prefix,
+      name: "Surge",
+      color: CHART_COLORS[prefix],
+      dashStyle: "LongDash",
+      lineWidth: 1,
+      fillOpacity:.01,
+      marker: {
+        symbol: "circle",
+        radius: 3,
+      },
+    }, false);
+  }
+
+  damage.setData(chartData.damageData);
+  surge.setData(chartData.surgeData);
 }
 
 function updateProbabilities() {
@@ -241,9 +283,7 @@ function updateProbabilities() {
 
   var chartData = damageToChartData(probabilitiesByDamage);
 
-  var damageChart = $("#chart").highcharts();
-  damageChart.get('damage').setData(chartData.damageData);
-  damageChart.get('surge').setData(chartData.surgeData);
+  setChartData("current", chartData);
 }
 
 function getDistance() {

@@ -336,3 +336,14 @@ h1 {
 }
 
 .pinned-inactive {}
+
+
+#credits {
+  font-size: 8pt;
+  color: #888;
+  text-align: center;
+}
+
+#credits a {
+  color: #666;
+}

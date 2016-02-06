@@ -253,7 +253,10 @@ function setupPin() {
                   pinnedElement.addClass(clazz);
                 }
               });
-              // TODO: Copy modifier/surge graphics, text
+              $(element).find('.element-icon').each(function(k, img) {
+                pinnedElement.append($(img).clone());
+              });
+              // TODO: Copy surge contents, text
               pinnedElement.appendTo(pinned);
             });
         pinned.appendTo($("#pinned-area"));
@@ -338,6 +341,8 @@ function justifySeries(damageChart) {
 }
 
 function setChartData(suffix, chartData) {
+  // TODO: Don't display empty chart data.
+
   var damageChart = $("#chart").highcharts();
   var damage = damageChart.get("damage-" + suffix);
   var surge = damageChart.get("surge-" + suffix);

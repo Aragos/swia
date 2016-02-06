@@ -83,6 +83,12 @@ h1 {
   background-color: #fff;
 }
 
+.element-icon {
+  width: 25px;
+  height: 25px;
+  margin: 10px;
+}
+
 /* Surge */
 .surge-source {
   height: 49px; /* 2 * vertical surge element margin + surge element height + 2 * surge element border */
@@ -110,11 +116,24 @@ h1 {
 }
 
 #surge-label {
-  width: 37px;
+  width: 43px;
+}
+
+#surge-label span {
+  float: right;
+  font-size: 180%;
+  margin: -2px 0 0 0; /* Colons aren't perfectly centered, needs to be moved up to align. */
+}
+
+#surge-label img {
+  width: 27px;
+  height: 27px;
+  margin: 10px 1px 10px 0;
+  float: right;
 }
 
 .surge-count {
-  width: 23px;
+  width: 21px;
   text-align: right;
   margin: 0 1px 0 0;
 }
@@ -138,8 +157,35 @@ h1 {
   background-color: white;
 }
 
-.compiled-surge-label {
+.compiled-surge-item * {
+  float: left;
+}
+
+.compiled-surge-item img {
+  width: 10px;
+  height: 10px;
+  margin: 6px 1px 6px 1px;
+}
+
+.compiled-surge-label img {
+  width: 17px;
+  height: 17px;
+  margin: 2px 0 1px 2px;
+}
+
+.compiled-surge-label span {
+  display: none;
   font-weight: bold;
+  font-size: 140%;
+  margin: -1px 0 0 0;
+}
+
+.compiled-surge-label {
+  background-color: #ccc;
+  margin: 0 1px 1px 0;
+  height: 21px;
+  width: 21px;
+  border-radius: 8px 0 4px 0;
 }
 
 /* Dice */
@@ -168,7 +214,6 @@ h1 {
 }
 
 
-
 /* Ranged */
 #ranged {
   float: left;
@@ -187,6 +232,7 @@ h1 {
   float: left;
   border-radius: 8px;
   cursor: default;
+  -webkit-user-select: none;
 }
 
 #ranged-plus {
@@ -205,8 +251,24 @@ h1 {
   line-height: 24px; /* == height for vertical text center */
   margin: 5px 0 5px 0;
   float: left;
-  font-size:120%;
+  font-size:140%;
   cursor: default;
+  position: relative;
+  color: #081133;
+}
+
+#ranged-value::after {
+  content: "";
+  background-image: url("icons/ranged.svg");
+  background-repeat: no-repeat;
+  background-size: 55px 28px;
+  opacity: 0.3;
+  top: -3px;
+  left: -5px;
+  bottom: -3px;
+  right: 0;
+  position: absolute;
+  z-index: -1;
 }
 
 /* chart */
@@ -261,6 +323,12 @@ h1 {
   float: left;
   text-align: center;
   line-height: 8px;
+}
+
+.pinned-element img {
+  width: 5px;
+  height: 5px;
+  margin: 2px;
 }
 
 .pinned-active {

@@ -39,7 +39,7 @@ function setupElementTrash() {
           if (draggable.hasClass("target-element")) {
             draggable.remove();
             updatePlaceholder();
-            updateProbabilities();
+            updateProbabilitiesAsync();
           } else if (draggable.hasClass("surge-element")) {
             if (draggable.hasClass("damage-modifier")) {
               decreaseCount("#surge-damage-count");
@@ -61,23 +61,30 @@ function setupTarget() {
                 (element.hasClass("element") || element.attr("id") == "surge-source");
           },
           drop: function(event, dragged) {
-            var newElement = dragged.draggable;
-            if (!newElement.hasClass("element")) { // it's a surge source, but we want the compiled surge
-              newElement = getCompiledSurge();
-              resetSurgeSource();
-            }
-            newElement
-                .clone()
-                .addClass("target-element")
-                .draggable({
-                  appendTo: "body",
-                  revert: "invalid", // jump back if not dropped on droppable
-                  revertDuration: 200
-                })
-                .appendTo(this);
+            var droppable = this;
 
-            updatePlaceholder();
-            updateProbabilities();
+            var newElementPromise = Promise.resolve(dragged.draggable);
+            if (!dragged.draggable.hasClass("element")) { // it's a surge source, but we want the compiled surge
+              newElementPromise = dragged.helper.compiledSurge.then(function(newElement) {
+                resetSurgeSource();
+                return newElement;
+              });
+
+            }
+            newElementPromise.then(function(newElement) {
+              newElement
+                  .clone()
+                  .addClass("target-element")
+                  .draggable({
+                    appendTo: "body",
+                    revert: "invalid", // jump back if not dropped on droppable
+                    revertDuration: 200
+                  })
+                  .appendTo(droppable);
+
+              updatePlaceholder();
+              updateProbabilitiesAsync();
+            });
           }
         });
 }
@@ -109,7 +116,18 @@ function makeSurgeDraggable() {
         appendTo: "body",
         revert: "invalid", // jump back if not dropped on droppable
         revertDuration: 200,
-        helper: "clone"
+        helper: "clone",
+        start: function(event, dragged) {
+          // Attach a promise to dragged that computes the compiled surge while the element is being
+          // dragged. Because it is a promise it doesn't have to be completed by the time the surge
+          // is dropped, the drop() method can just call then() on it to get the eventually computed
+          // result.
+          dragged.helper.compiledSurge = new Promise(function(resolve, reject) {
+           setTimeout(function() {
+             resolve(getCompiledSurge());
+           }, 0);
+          });
+        }
       });
 }
 
@@ -146,13 +164,13 @@ function setupRanged() {
   $("#ranged-plus")
       .click(function() {
         increaseCount("#ranged-value");
-        updateProbabilities();
+        updateProbabilitiesAsync();
       });
 
   $("#ranged-minus")
       .click(function() {
         decreaseCount("#ranged-value");
-        updateProbabilities();
+        updateProbabilitiesAsync();
       });
 }
 
@@ -191,6 +209,18 @@ function setupChart() {
     legend: {
       enabled: false,
     },
+    loading: {
+      labelStyle: {
+        fontWeight: "bold",
+        position: "relative",
+        top: "0",
+      },
+      style: {
+        textAlign: "right",
+        opacity: .5,
+        backgroundColor: "transparent",
+      }
+    }
   });
 }
 
@@ -367,6 +397,23 @@ function removeChart(prefix) {
   damageChart.redraw();
   justifySeries(damageChart);
   damageChart.redraw();
+}
+
+function markGraphUpdating(showUpdating) {
+  var damageChart = $("#chart").highcharts();
+  if (showUpdating) {
+    damageChart.showLoading();
+  } else {
+    damageChart.hideLoading();
+  }
+}
+
+function updateProbabilitiesAsync() {
+  markGraphUpdating(true);
+  setTimeout(function () {
+    updateProbabilities();
+    markGraphUpdating(false);
+  }, 0);
 }
 
 function getCurrentChartData() {

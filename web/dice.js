@@ -517,11 +517,11 @@ function array3d(size) {
   for (var i = 0; i < size; i++) {
     result[i] = [];
     for (var j = 0; j < size; j++) {
-	  result[i][j] = [];
-	  for (var k = 0; k < size; k++) {
-	    result[i][j][k] = 0;
-	  }
-	}
+      result[i][j] = [];
+      for (var k = 0; k < size; k++) {
+        result[i][j][k] = 0;
+      }
+    }
   }
   return result;
 }
@@ -529,44 +529,44 @@ function array3d(size) {
 function redDieDefinition() {
   result = [
       { attack: 1, surge: 0, accuracy: 0},
-	  { attack: 2, surge: 0, accuracy: 0},
-	  { attack: 2, surge: 0, accuracy: 0},
-	  { attack: 2, surge: 1, accuracy: 0},
-	  { attack: 3, surge: 0, accuracy: 0},
-	  { attack: 3, surge: 0, accuracy: 0}];
+      { attack: 2, surge: 0, accuracy: 0},
+      { attack: 2, surge: 0, accuracy: 0},
+      { attack: 2, surge: 1, accuracy: 0},
+      { attack: 3, surge: 0, accuracy: 0},
+      { attack: 3, surge: 0, accuracy: 0}];
   return result;
 }
 
 function blueDieDefinition() {
   result = [
-    { attack: 0, surge: 1, accuracy: 2},
-	{ attack: 1, surge: 0, accuracy: 2},
-	{ attack: 2, surge: 0, accuracy: 3},
-	{ attack: 1, surge: 1, accuracy: 3},
-	{ attack: 2, surge: 0, accuracy: 4},
-	{ attack: 1, surge: 0, accuracy: 5}];
+      { attack: 0, surge: 1, accuracy: 2},
+      { attack: 1, surge: 0, accuracy: 2},
+      { attack: 2, surge: 0, accuracy: 3},
+      { attack: 1, surge: 1, accuracy: 3},
+      { attack: 2, surge: 0, accuracy: 4},
+      { attack: 1, surge: 0, accuracy: 5}];
   return result;
 }
 
 function greenDieDefinition() {
   result = [
-    { attack: 0, surge: 1, accuracy: 1},
-	{ attack: 1, surge: 1, accuracy: 1},
-	{ attack: 2, surge: 0, accuracy: 1},
-	{ attack: 1, surge: 1, accuracy: 2},
-	{ attack: 2, surge: 0, accuracy: 2},
-	{ attack: 2, surge: 0, accuracy: 3}];
+      { attack: 0, surge: 1, accuracy: 1},
+      { attack: 1, surge: 1, accuracy: 1},
+      { attack: 2, surge: 0, accuracy: 1},
+      { attack: 1, surge: 1, accuracy: 2},
+      { attack: 2, surge: 0, accuracy: 2},
+      { attack: 2, surge: 0, accuracy: 3}];
   return result;
 }
 
 function yellowDieDefinition() {
   result = [
-    { attack: 0, surge: 1, accuracy: 0},
-	{ attack: 1, surge: 2, accuracy: 0},
-	{ attack: 2, surge: 0, accuracy: 1},
-	{ attack: 1, surge: 1, accuracy: 1},
-	{ attack: 0, surge: 1, accuracy: 2},
-	{ attack: 1, surge: 0, accuracy: 2}];
+      { attack: 0, surge: 1, accuracy: 0},
+      { attack: 1, surge: 2, accuracy: 0},
+      { attack: 2, surge: 0, accuracy: 1},
+      { attack: 1, surge: 1, accuracy: 1},
+      { attack: 0, surge: 1, accuracy: 2},
+      { attack: 1, surge: 0, accuracy: 2}];
   return result;
 }
 
@@ -589,23 +589,24 @@ var ATTACK_DIE_DEFINITIONS = {
  * For example, if a "~: +2@" surge ability is available with 3 attack and 2 surges, 
  * this will return 1 for damage=4, and this will return 2 for damage=3.
  */
-function evaluateDamage(attackStats, surgeAbilities, damage) {
-  // TODO: Use defense stats as well as pierce information.
+function evaluateDamage(attackStats, defenseStats, surgeAbilities, damage) {
   // TODO: Use accuracy.
   var currentAttack = attackStats.attack;
-  var remainingSurges = attackStats.surge;
+  var remainingSurges = attackStats.surge - defenseStats.evades;
   var remainingSurgeAbilities = surgeAbilities.slice();
-  
+  var currentDefense = defenseStats.defense;
+ 
   while (remainingSurges > 0) {
     if (currentAttack >= damage) {
 	  return remainingSurges;
-	}
-	var surgeAbility = popBestSurgeAbility(remainingSurgeAbilities);
-	if (surgeAbility == null) {
-	  return -1;
-	}
-	remainingSurges--;
-	currentAttack += surgeAbility.damage;
+    }
+    var surgeAbility = popBestSurgeAbility(remainingSurgeAbilities);
+    if (surgeAbility == null) {
+      return -1;
+    }
+    remainingSurges--;
+    currentAttack += surgeAbility.damage;
+    currentDefense = Math.max(0, currentDefense - surgeAbility.pierce);
   }
   if (currentAttack >= damage) {
     return 0;
@@ -656,11 +657,11 @@ function combineOutcomes(outcomeArray, dieOutcomes) {
     for (var i = 0; i + dieOutcome.attack < outcomeArray.length; i++) {
       for (var j = 0; j + dieOutcome.surge < outcomeArray[i].length; j++) {
         for (var k = 0; k + dieOutcome.accuracy < outcomeArray[i][j].length; k++) {
-	      result[i + dieOutcome.attack][j + dieOutcome.surge][k + dieOutcome.accuracy] +=
-		      outcomeArray[i][j][k];
-		}
-	  }
-	}
+          result[i + dieOutcome.attack][j + dieOutcome.surge][k + dieOutcome.accuracy] +=
+              outcomeArray[i][j][k];
+        }
+      }
+    }
   }
   return result;
 }
@@ -701,28 +702,30 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
         totalPermutations *= 6;
         newPowOccurrences = combineOutcomes(currentOutcomes, dieOutcomes);
         currentOutcomes = newPowOccurrences;
-	  }
-	}
+      }
+    }
   }
  
   cdfNumerators = [];
   extraSurgeNumerators = [];
   for (var damage = 0; damage < currentOutcomes.length; damage++) {
     cdfNumerators[damage] = 0;
-	extraSurgeNumerators[damage] = 0;
+    extraSurgeNumerators[damage] = 0;
     for (var attack = 0; attack < currentOutcomes.length; attack++) {
-	  for (var surge = 0; surge < currentOutcomes[attack].length; surge++) {
-	    for (var accuracy = 0; accuracy < currentOutcomes[attack][surge].length; accuracy++) {
-		  if (currentOutcomes[attack][surge][accuracy] == 0) continue;
-		  var evaluation = evaluateDamage(
-		      {attack:attack, surge:surge, accuracy:accuracy}, surgeAbilities, damage);
-		  if (evaluation >= 0) {
-		    cdfNumerators[damage] += currentOutcomes[attack][surge][accuracy];
-		  }
-		  if (evaluation >= 1) {
-		    extraSurgeNumerators[damage] += currentOutcomes[attack][surge][accuracy];
-		  }
-		}
+      for (var surge = 0; surge < currentOutcomes[attack].length; surge++) {
+        for (var accuracy = 0; accuracy < currentOutcomes[attack][surge].length; accuracy++) {
+          if (currentOutcomes[attack][surge][accuracy] == 0) continue;
+          var evaluation = evaluateDamage(
+              {attack:attack, surge:surge, accuracy:accuracy},
+              {defense:defense, evade:evade},
+              surgeAbilities, damage);
+          if (evaluation >= 0) {
+            cdfNumerators[damage] += currentOutcomes[attack][surge][accuracy];
+          }
+          if (evaluation >= 1) {
+            extraSurgeNumerators[damage] += currentOutcomes[attack][surge][accuracy];
+          }
+        }
       }
     }
   }
@@ -731,7 +734,7 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
   for (var i = 0; i < currentOutcomes.length; i++) {
     if (cdfNumerators[i] > 0) {
       result.push({ count: i, damage: (cdfNumerators[i] / totalPermutations), surge: (extraSurgeNumerators[i] / totalPermutations)});
-	}
+    }
   }
 
   return result;

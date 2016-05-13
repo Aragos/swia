@@ -510,6 +510,20 @@ function compareByCount(a, b) {
 }
 
 /**
+ * Creates and returns a size by size by size 2D array (with 0 values).
+ */
+function array2d(size) {
+  result = [];
+  for (var i = 0; i < size; i++) {
+    result[i] = [];
+    for (var j = 0; j < size; j++) {
+      result[i][j] = 0;
+    }
+  }
+  return result;
+}
+
+/**
  * Creates and returns a size by size by size 3D array (with 0 values).
  */
 function array3d(size) {
@@ -570,6 +584,28 @@ function yellowDieDefinition() {
   return result;
 }
 
+function whiteDieDefinition() {
+  result = [
+      { defense: 0, evade: 0},
+      { defense: 0, evade: 1},
+      { defense: 0, evade: 1},
+      { defense: 1, evade: 1},
+      { defense: 1, evade: 1},
+      { defense: 9999, evade: 0}]; // This is a dodge.
+  return result;
+}
+
+function blackDieDefinition() {
+  result = [
+      { defense: 0, evade: 0},
+      { defense: 0, evade: 1},
+      { defense: 1, evade: 0},
+      { defense: 2, evade: 0},
+      { defense: 2, evade: 0},
+      { defense: 3, evade: 0}];
+  return result;
+}
+
 /**
  * Map from die color name (e.g. "yellow") to a size-6 array of struct defining the attack, surge,
  * and accuracy values on one side of the die.
@@ -582,23 +618,32 @@ var ATTACK_DIE_DEFINITIONS = {
 }
 
 /**
+ * Map from die color name (e.g. "yellow") to a size-6 array of struct defining the attack, surge,
+ * and accuracy values on one side of the die.
+ */
+var DEFENSE_DIE_DEFINITIONS = {
+  "black" : blackDieDefinition(),
+  "white" : whiteDieDefinition()
+}
+
+/**
  * Evaluates whether the given attack stats (attack/surge/accuracy struct) with given
- * surge abilities is capable of doing the given amount of damage.
+ * surge abilities is capable of doing the given amount of damage at the given distance.
  * If there is insufficient power, returns -1.
  * Otherwise, returns the number of leftover surges to achieve the amount of damage.
  * For example, if a "~: +2@" surge ability is available with 3 attack and 2 surges, 
  * this will return 1 for damage=4, and this will return 2 for damage=3.
  */
-function evaluateDamage(attackStats, defenseStats, surgeAbilities, damage) {
-  // TODO: Use accuracy.
+function evaluateDamage(attackStats, defenseStats, surgeAbilities, damage, distance) {
+  var currentAccuracy = attackStats.accuracy;
   var currentAttack = attackStats.attack;
-  var remainingSurges = attackStats.surge - defenseStats.evades;
+  var remainingSurges = attackStats.surge - defenseStats.evade;
   var remainingSurgeAbilities = surgeAbilities.slice();
   var currentDefense = defenseStats.defense;
  
   while (remainingSurges > 0) {
-    if (currentAttack >= damage) {
-	  return remainingSurges;
+    if (currentAccuracy >= distance && currentAttack - currentDefense >= damage) {
+      return remainingSurges;
     }
     var surgeAbility = popBestSurgeAbility(remainingSurgeAbilities);
     if (surgeAbility == null) {
@@ -607,8 +652,9 @@ function evaluateDamage(attackStats, defenseStats, surgeAbilities, damage) {
     remainingSurges--;
     currentAttack += surgeAbility.damage;
     currentDefense = Math.max(0, currentDefense - surgeAbility.pierce);
+    currentAccuracy += surgeAbility.accuracy;
   }
-  if (currentAttack >= damage) {
+  if (currentAccuracy >= distance && currentAttack - currentDefense >= damage) {
     return 0;
   } else {
     return -1;
@@ -627,9 +673,9 @@ function popBestSurgeAbility(surgeAbilities) {
   for (var index in surgeAbilities) {
     var ability = surgeAbilities[index];
     if (ability.damage > currentBestAttack) {
-	  currentBestAbilityIndex = index;
-	  currentBestAttack = ability.damage;
-	}
+      currentBestAbilityIndex = index;
+      currentBestAttack = ability.damage;
+    }
   }
   if (currentBestAbilityIndex < 0) {
     return null;
@@ -640,8 +686,10 @@ function popBestSurgeAbility(surgeAbilities) {
 
 /*
  * Below we use a data representation to aid results calculation, called an "outcome" array.
- * We use a three dimensional array, where arr[i][j][k] is equal to the number of permutations
+ * For attack dice, we use a three dimensional array, where arr[i][j][k] is equal to the number of permutations
  * to roll exactly i pow symbols, j surges, and k accuracy.
+ * For defense dice, we use a two dimensional array, where arr[x][y] is equal to the number of permutations
+ * to roll exactly x defense, and y evades.
  */
  
 /**
@@ -650,16 +698,33 @@ function popBestSurgeAbility(surgeAbilities) {
  * together, and dieOutcomes is the die outcome definition representing rolling a single red die,
  * then this will return the outcome array of rolling a green, yellow, and red die together.
  */
-function combineOutcomes(outcomeArray, dieOutcomes) {
+function combineAttOutcomes(outcomeArray, dieOutcomes) {
   result = array3d(outcomeArray.length);
   for (var dieOutcomeIndex = 0; dieOutcomeIndex < dieOutcomes.length; dieOutcomeIndex++) {
-  dieOutcome = dieOutcomes[dieOutcomeIndex];
+    dieOutcome = dieOutcomes[dieOutcomeIndex];
     for (var i = 0; i + dieOutcome.attack < outcomeArray.length; i++) {
       for (var j = 0; j + dieOutcome.surge < outcomeArray[i].length; j++) {
         for (var k = 0; k + dieOutcome.accuracy < outcomeArray[i][j].length; k++) {
           result[i + dieOutcome.attack][j + dieOutcome.surge][k + dieOutcome.accuracy] +=
               outcomeArray[i][j][k];
         }
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * Returns the combination of an outcome array and an additional die outcome definition.
+ * Like combineAttOutcomes, except using defense outcome arrays and defense dice. 
+ */
+function combineDefOutcomes(outcomeArray, dieOutcomes) {
+  result = array2d(outcomeArray.length);
+  for (var dieOutcomeIndex = 0; dieOutcomeIndex < dieOutcomes.length; dieOutcomeIndex++) {
+    dieOutcome = dieOutcomes[dieOutcomeIndex];
+    for (var i = 0; i + dieOutcome.defense < outcomeArray.length; i++) {
+      for (var j = 0; j + dieOutcome.evade < outcomeArray[i].length; j++) {
+          result[i + dieOutcome.defense][j + dieOutcome.evade] += outcomeArray[i][j];
       }
     }
   }
@@ -684,46 +749,60 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
 
   // This is a bit of a hack, as it is likely too large to be needed
   // for most calculations. It is also potentially too small for very large
-  // calculations, yet practical inputs will not reach over 50 of any attribute.
-  outcomesArraySize = 50;
+  // calculations, yet practical inputs will not reach over 30 of any attribute.
+  outcomesArraySize = 30;
   
   // TODO: This currently only works for pow symbols on attack dice. Use accuracy,
   // range, surges, and defense dice, as well as constant modifiers.
 
-  currentOutcomes = array3d(outcomesArraySize);
-  currentOutcomes[0][0][0] = 1;
+  currentAttOutcomes = array3d(outcomesArraySize);
+  currentAttOutcomes[0][0][0] = 1;
+  currentDefOutcomes = array2d(outcomesArraySize);
+  currentDefOutcomes[0][0] = 1;
   // Number of different ways the dice can roll.
   totalPermutations = 1;
 
   for (var dieColor in dice) {
-    dieOutcomes = ATTACK_DIE_DEFINITIONS[dieColor];
-    if (typeof dieOutcomes !== 'undefined') {
+    attDieOutcomes = ATTACK_DIE_DEFINITIONS[dieColor];
+    defDieOutcomes = DEFENSE_DIE_DEFINITIONS[dieColor];
+    if (typeof attDieOutcomes !== 'undefined') {
       for (var numDiceRemaining = dice[dieColor]; numDiceRemaining > 0; numDiceRemaining--) {
         totalPermutations *= 6;
-        newPowOccurrences = combineOutcomes(currentOutcomes, dieOutcomes);
-        currentOutcomes = newPowOccurrences;
+        currentAttOutcomes = combineAttOutcomes(currentAttOutcomes, attDieOutcomes);
+      }
+    }
+    if (typeof defDieOutcomes !== 'undefined') {
+      for (var numDiceRemaining = dice[dieColor]; numDiceRemaining > 0; numDiceRemaining--) {
+        totalPermutations *= 6;
+        currentDefOutcomes = combineDefOutcomes(currentDefOutcomes, defDieOutcomes);
       }
     }
   }
  
   cdfNumerators = [];
   extraSurgeNumerators = [];
-  for (var damage = 0; damage < currentOutcomes.length; damage++) {
+  for (var damage = 0; damage < currentAttOutcomes.length; damage++) {
     cdfNumerators[damage] = 0;
     extraSurgeNumerators[damage] = 0;
-    for (var attack = 0; attack < currentOutcomes.length; attack++) {
-      for (var surge = 0; surge < currentOutcomes[attack].length; surge++) {
-        for (var accuracy = 0; accuracy < currentOutcomes[attack][surge].length; accuracy++) {
-          if (currentOutcomes[attack][surge][accuracy] == 0) continue;
-          var evaluation = evaluateDamage(
-              {attack:attack, surge:surge, accuracy:accuracy},
-              {defense:defense, evade:evade},
-              surgeAbilities, damage);
-          if (evaluation >= 0) {
-            cdfNumerators[damage] += currentOutcomes[attack][surge][accuracy];
-          }
-          if (evaluation >= 1) {
-            extraSurgeNumerators[damage] += currentOutcomes[attack][surge][accuracy];
+    for (var attack = 0; attack < currentAttOutcomes.length; attack++) {
+      for (var surge = 0; surge < currentAttOutcomes[attack].length; surge++) {
+        for (var accuracy = 0; accuracy < currentAttOutcomes[attack][surge].length; accuracy++) {
+          if (currentAttOutcomes[attack][surge][accuracy] == 0) continue;
+          for (var defense = 0; defense < currentDefOutcomes.length; defense++) {
+            for (var evade = 0; evade < currentDefOutcomes[defense].length; evade++) {
+              if (currentDefOutcomes[defense][evade] == 0) continue;
+              var evaluation = evaluateDamage(
+                  {attack:(attack + modifiers.damage), surge:(surge + modifiers.surge), accuracy:(accuracy + modifiers.accuracy)},
+                  {defense:(defense + modifiers.block), evade:(evade + modifiers.evade)},
+                  surgeAbilities, damage,
+                  distance);
+              if (evaluation >= 0) {
+                cdfNumerators[damage] += currentAttOutcomes[attack][surge][accuracy] * currentDefOutcomes[defense][evade];
+              }
+              if (evaluation >= 1) {
+                extraSurgeNumerators[damage] += currentAttOutcomes[attack][surge][accuracy] * currentDefOutcomes[defense][evade];
+              }
+            }
           }
         }
       }
@@ -731,7 +810,7 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
   }
 
   result = [];
-  for (var i = 0; i < currentOutcomes.length; i++) {
+  for (var i = 0; i < currentAttOutcomes.length; i++) {
     if (cdfNumerators[i] > 0) {
       result.push({ count: i, damage: (cdfNumerators[i] / totalPermutations), surge: (extraSurgeNumerators[i] / totalPermutations)});
     }

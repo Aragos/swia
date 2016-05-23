@@ -588,7 +588,7 @@ function whiteDieDefinition() {
   result = [
       { defense: 0, evade: 0},
       { defense: 0, evade: 1},
-      { defense: 0, evade: 1},
+      { defense: 1, evade: 0},
       { defense: 1, evade: 1},
       { defense: 1, evade: 1},
       { defense: 9999, evade: 0}]; // This is a dodge.
@@ -597,8 +597,8 @@ function whiteDieDefinition() {
 
 function blackDieDefinition() {
   result = [
-      { defense: 0, evade: 0},
       { defense: 0, evade: 1},
+      { defense: 1, evade: 0},
       { defense: 1, evade: 0},
       { defense: 2, evade: 0},
       { defense: 2, evade: 0},

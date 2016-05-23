@@ -629,59 +629,81 @@ var DEFENSE_DIE_DEFINITIONS = {
 /**
  * Evaluates whether the given attack stats (attack/surge/accuracy struct) with given
  * surge abilities is capable of doing the given amount of damage at the given distance.
- * If there is insufficient power, returns -1.
+ * Returns the amount of surges left over to reach the given attack value, or, if reaching
+ * the attack value is impossible with the given surge abilities, returns -1.
  * Otherwise, returns the number of leftover surges to achieve the amount of damage.
  * For example, if a "~: +2@" surge ability is available with 3 attack and 2 surges, 
  * this will return 1 for damage=4, and this will return 2 for damage=3.
  */
 function evaluateDamage(attackStats, defenseStats, surgeAbilities, damage, distance) {
-  var currentAccuracy = attackStats.accuracy;
-  var currentAttack = attackStats.attack;
-  var remainingSurges = attackStats.surge - defenseStats.evade;
-  var remainingSurgeAbilities = surgeAbilities.slice();
-  var currentDefense = defenseStats.defense;
+  var availableSurges = Math.max(0, attackStats.surge - defenseStats.evade);
  
-  while (remainingSurges > 0) {
-    if (currentAccuracy >= distance && currentAttack - currentDefense >= damage) {
-      return remainingSurges;
+  for (var surgesToUse = 0; surgesToUse <= availableSurges
+      && surgesToUse <= surgeAbilities.length; surgesToUse++) {
+    var waysToChoose = nChooseRGenerator(surgeAbilities.length, surgesToUse);
+    for (var chooseIndices of waysToChoose) {
+      var surgeAbilitiesToCheck = [];
+      for (var i = 0; i < chooseIndices.length; i++) {
+        surgeAbilitiesToCheck = surgeAbilitiesToCheck.concat(
+            surgeAbilities[chooseIndices[i]]);
+      }
+      if (meetsAttackRequirement(attackStats.attack, attackStats.accuracy, defenseStats.defense,
+          surgeAbilitiesToCheck, damage, distance)) {
+        return availableSurges - surgesToUse;
+      }
     }
-    var surgeAbility = popBestSurgeAbility(remainingSurgeAbilities);
-    if (surgeAbility == null) {
-      return -1;
-    }
-    remainingSurges--;
-    currentAttack += surgeAbility.damage;
-    currentDefense = Math.max(0, currentDefense - surgeAbility.pierce);
-    currentAccuracy += surgeAbility.accuracy;
   }
-  if (currentAccuracy >= distance && currentAttack - currentDefense >= damage) {
-    return 0;
-  } else {
-    return -1;
+  return -1;
+}
+
+/**
+ * Generator which enumerates all possibilites of choosing r objects from
+ * n total objects. Each iteration returns an array of which objects
+ * are selected, with object IDs ranging from 0 to (n-1).
+ *
+ * For example, n=3, r=2 would provide [0, 1], then [0, 2], then [1, 2].
+ */
+function* nChooseRGenerator(n, r) {
+  var currentState = [];
+  for (var i=0; i<r; i++) {
+    currentState = currentState.concat(i);
+  }
+  while (true) {
+    yield currentState.slice();
+    // Start from the last digit and attempt to increment, iterate
+    // back towards the start until one can be incremented.
+    for (var i=r-1; i >= 0; i--) {
+      var positionsFromRight = r-1-i;
+      if (currentState[i] < n - 1 - positionsFromRight) {
+        // Can be incremented, so increment.
+        currentState[i]++;
+        // Reset all digits past this one to their lowest possible values.
+        for (i++; i<r; i++) {
+          currentState[i] = currentState[i-1]+1;
+        }
+        break;
+      }
+    }
+    if (i < 0) {
+      // Was unable to increment, so there's nothing more to enumerate.
+      return;
+    }
   }
 }
 
 /**
- * Pops and returns the best applicable surge ability from the list of given surge abilities,
- * Returns null and removes nothing from the list if either the list is empty, or the list
- * contains only surges that do not actually help the attack.
+ * Returns true if the given attack and accuracy values, after applying ALL given
+ * surge abilities in surgeAbilities, deal at least the given amount of damage
+ * at the given distance.
  */
-function popBestSurgeAbility(surgeAbilities) {
-  // TODO: Use pierce and accuracy, instead of just attack.
-  var currentBestAbilityIndex = -1;
-  var currentBestAttack = 0;
+function meetsAttackRequirement(attack, accuracy, defense, surgeAbilities, damage, distance) {
   for (var index in surgeAbilities) {
-    var ability = surgeAbilities[index];
-    if (ability.damage > currentBestAttack) {
-      currentBestAbilityIndex = index;
-      currentBestAttack = ability.damage;
-    }
+    var surgeAbility = surgeAbilities[index];
+    attack += surgeAbility.damage;
+    accuracy += surgeAbility.accuracy;
+    defense = Math.max(0, defense - surgeAbility.pierce);
   }
-  if (currentBestAbilityIndex < 0) {
-    return null;
-  } else {
-    return surgeAbilities.splice(currentBestAbilityIndex, 1)[0];
-  }
+  return (accuracy >= distance) && (attack - defense >= damage);
 }
 
 /*

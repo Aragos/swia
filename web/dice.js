@@ -479,7 +479,6 @@ function getCurrentDamage() {
   var dice = getDice();
   var modifiers = getModifiers();
   var surgeAbilities = getSurgeAbilities();
-  console.log(surgeAbilities);
   var distance = getDistance();
 
   return calculateDamage(dice, modifiers, surgeAbilities, distance);

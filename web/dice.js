@@ -253,7 +253,7 @@ function getFreePinId() {
 function setupClear() {
   $("#clear")
       .click(function() {
-        $(".target-element").remove();
+        $("#target").find(".target-element").remove();
         updatePlaceholder();
         updateProbabilitiesAsync();
       });

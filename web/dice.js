@@ -235,7 +235,34 @@ function getFreePinId() {
   throw "No more pin IDs"; // TODO: Disable Pin button before this becomes necessary.
 }
 
-function setupPin() {
+/**
+ * Initializes the combine button.
+ *
+ * @param pinnedDataMap a shared map between components, this map contains entries where,
+ *     for each currently toggled target, an entry is present. Keys are pin IDs, and values
+ *     are the damage data for that target
+ */
+function setupCombine(pinnedDataMap) {
+  $("#combine")
+      .click(function() {
+        var selectedDamages = [];
+        for (var pinId in pinnedDataMap) {
+          selectedDamages.push(pinnedDataMap[pinId]);
+        }
+        var combinedDamage = combineCdfs(selectedDamages); 
+        var chartData =  damageToChartData(combinedDamage);
+        setChartData("current", chartData);
+      });
+}
+
+/**
+ * Initializes the pin button.
+ *
+ * @param pinnedDataMap a shared map between components, this map contains entries where,
+ *     for each currently toggled target, an entry is present. Keys are pin IDs, and values
+ *     are the damage data for that target
+ */
+function setupPin(pinnedDataMap) {
   // TODO: Include range in pinned (visuals)
   // TODO: Include re-rolls in pinned
   // TODO: Add clear functionality to remove individual/all pins.
@@ -263,9 +290,10 @@ function setupPin() {
 
         var pinId = getFreePinId();
         pinned.css("border-color", CHART_COLORS[pinId]);
-        var chartData = getCurrentChartData();
+        var damageData = getCurrentDamage();
+        var chartData = damageToChartData(damageData);
         var toggle = function() {
-          togglePinned(pinId, pinned, chartData);
+          togglePinned(pinId, pinned, chartData, damageData, pinnedDataMap);
         };
         pinned.click(toggle);
         toggle();
@@ -273,12 +301,14 @@ function setupPin() {
       });
 }
 
-function togglePinned(pinId, pinned, chartData) {
+function togglePinned(pinId, pinned, chartData, damageData, pinnedDataMap) {
   if (pinned.hasClass("pinned-active")) {
+    delete pinnedDataMap[pinId];
     removeChart(pinId);
     pinned.addClass("pinned-inactive");
     pinned.removeClass("pinned-active");
   } else {
+    pinnedDataMap[pinId] = damageData;
     setChartData(pinId, chartData);
     pinned.addClass("pinned-active");
     pinned.removeClass("pinned-inactive");
@@ -421,13 +451,17 @@ function updateProbabilitiesAsync() {
   }, 0);
 }
 
-function getCurrentChartData() {
+function getCurrentDamage() {
   var dice = getDice();
   var modifiers = getModifiers();
   var surgeAbilities = getSurgeAbilities();
   var distance = getDistance();
 
-  var probabilitiesByDamage = calculateDamage(dice, modifiers, surgeAbilities, distance);
+  return calculateDamage(dice, modifiers, surgeAbilities, distance);
+}
+
+function getCurrentChartData() {
+  var probabilitiesByDamage = getCurrentDamage();
   return damageToChartData(probabilitiesByDamage);
 }
 
@@ -697,6 +731,9 @@ function* nChooseRGenerator(n, r) {
  * at the given distance.
  */
 function meetsAttackRequirement(attack, accuracy, defense, surgeAbilities, damage, distance) {
+  if (damage == 0) {
+    return true;
+  }
   for (var index in surgeAbilities) {
     var surgeAbility = surgeAbilities[index];
     attack += surgeAbility.damage;
@@ -839,4 +876,92 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
   }
 
   return result;
+}
+
+/**
+ * Combines one or more CDFs additively. Note that since CDF values are rounded to the nearest
+ * percent, there is some precision lost.
+ *
+ * @param cdfs an array of cdf arrays. Each cdf array should contain elements with three defined fields:
+ *     "count", "damage", and "surge".
+ * @return a single cdf array, with surge values set to 0 (as they do not make sense cumulatively)
+ */
+function combineCdfs(cdfs) {
+  var cumulativePdf = [1];
+  for (var i = 0; i < cdfs.length; i++) {
+    var cleanCdf = graphToCleanCdf(cdfs[i]);
+    var pdf = cdfToPdf(cleanCdf);
+    cumulativePdf = combinePdfs(pdf, cumulativePdf);
+  }
+  var cleanResultCdf = pdfToCdf(cumulativePdf);
+  var result = [];
+  for (var i = 0; i < cleanResultCdf.length; i++) {
+    if (cleanResultCdf[i] > 0) {
+      result.push({ count: i, damage: cleanResultCdf[i], surge: 0});
+    }
+  }
+  return result;
+}
+
+/**
+ * Combines two PDFs additively.
+ *
+ * @return a pdf array. pdf[i] represents the probability that the value is exactly i.
+ */
+function combinePdfs(pdf1, pdf2) {
+  var resultPdf = [];
+  for (var i = 0; i < pdf1.length + pdf2.length - 1; i++) {
+    resultPdf[i] = 0;
+  }
+  for (var i = 0; i < pdf1.length; i++) {
+    for (var j = 0; j < pdf2.length; j++) {
+      resultPdf[i+j] += (pdf1[i] * pdf2[j]);
+    }
+  }
+  return resultPdf; 
+}
+
+/**
+ * Given a CDF array, returns a PDF array.
+ *
+ * @param cdf a clean cdf array. cdf[i] represents the probability that the value is at least i.
+ * @return a pdf array. pdf[i] represents the probability that the value is exactly i.
+ */
+function cdfToPdf(cdf) {
+  var pdf = [];
+  for (var i = 0; i < cdf.length - 1; i++) {
+    pdf[i] = cdf[i] - cdf[i+1];
+  }
+  pdf[cdf.length - 1] = cdf[cdf.length - 1];
+  return pdf;
+}
+
+/**
+ * Given a graph-compatible CDF array, return a "clean" CDF array.
+ *
+ * @param cdf a "cdf" array containing elements with three defined fields:
+ *     "count", "damage", and "surge".
+ * @return a clean cdf array. cdf[i] represents the probability that the value is at least i.
+ */
+function graphToCleanCdf(graphCdf) {
+  var cleanCdf = [];
+  for (var i = 0; i < graphCdf.length; i++) {
+    cleanCdf[graphCdf[i].count] = graphCdf[i].damage; 
+  }
+  return cleanCdf;
+}
+
+/**
+ * Given a PDF array, returns a "clean" CDF array.
+ *
+ * @param pdf a pdf array. pdf[i] represents the probability that the value is exactly i.
+ * @return a clean cdf array. cdf[i] represents the probability that the value is at least i.
+ */
+function pdfToCdf(pdf) {
+  var cdf = [];
+  cdf[0] = 1;
+  for (var i = 1; i < pdf.length; i++) {
+    cdf[i] = cdf[i-1] - pdf[i-1];
+  }
+  return cdf;
 }

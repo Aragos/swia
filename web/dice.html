@@ -102,6 +102,12 @@
     </div>
   </div>
 
+  <div class="whole-width">
+    <div id="combine">
+      Combine
+    </div>
+  </div>
+
   <div id="credits" class="whole-width">
     Powered by:
     <a href="jquery.com" target="_blank">jQuery</a> |
@@ -125,10 +131,12 @@
   </div>
 
   <script>
+    var pinnedDataMap = {};
     setupDrops();
     setupRanged();
     setupChart();
-    setupPin();
+    setupPin(pinnedDataMap);
+    setupCombine(pinnedDataMap);
   </script>
 
 </body>

@@ -297,6 +297,20 @@ h1 {
   line-height: 45px; /* == height to center line vertically */
 }
 
+/* Clearing */
+#clear {
+  background-color: #fdae6b;
+  margin: 2px 0 0 4px;
+  border: 1px solid #555;
+  cursor: default;
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  float: left;
+  text-align: center;
+  line-height: 45px; /* == height to center line vertically */
+}
+
 /* Pinning */
 #pin {
   background-color: #fdae6b;

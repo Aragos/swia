@@ -248,6 +248,18 @@ function getFreePinId() {
 }
 
 /**
+ * Initializes the clear button.
+ */
+function setupClear() {
+  $("#clear")
+      .click(function() {
+        $(".target-element").remove();
+        updatePlaceholder();
+        updateProbabilitiesAsync();
+      });
+}
+
+/**
  * Initializes the combine button.
  *
  * @param pinnedDataMap a shared map between components, this map contains entries where,

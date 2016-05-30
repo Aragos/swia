@@ -92,13 +92,17 @@ function setupTarget() {
 function setupSurgeSource() {
   $("#surge-source")
       .droppable({
-        accept: ".damage-modifier, .pierce-modifier, .accuracy-modifier",
+        accept: ".surge-modifier, .damage-modifier, .pierce-modifier, .accuracy-modifier",
         drop: function(event, dragged) {
           var draggable = dragged.draggable;
           if (draggable.hasClass("target-element")) {
             draggable.remove();
           }
-          if (draggable.hasClass("damage-modifier")) {
+          if (draggable.hasClass("surge-modifier")) {
+            var prevCost = parseInt($("#surge-cost-count").text());
+            var newCost = prevCost > 1 ? 1 : 2; 
+            $("#surge-cost-count").text(newCost); 
+          } else if (draggable.hasClass("damage-modifier")) {
             increaseCount("#surge-damage-count");
           } else if (draggable.hasClass("pierce-modifier")) {
             increaseCount("#surge-pierce-count");
@@ -136,6 +140,13 @@ function makeSurgeDraggable() {
  */
 function getCompiledSurge() {
   var compiled = $("#compiled-surge-template").clone();
+  compiled.find(".compiled-surge-cost-count").text($("#surge-cost-count").text().trim());
+  var surgeCost = parseInt($("#surge-cost-count").text().trim());
+  if (surgeCost == 2) {
+    compiled.find(".compiled-surge-cost").hide();
+  } else {
+    compiled.find(".compiled-surge-cost-two").hide();
+  }
   compiled.find(".compiled-surge-damage-count").text($("#surge-damage-count").text().trim());
   compiled.find(".compiled-surge-pierce-count").text($("#surge-pierce-count").text().trim());
   compiled.find(".compiled-surge-accuracy-count").text($("#surge-accuracy-count").text().trim());
@@ -144,6 +155,7 @@ function getCompiledSurge() {
 }
 
 function resetSurgeSource() {
+  $("#surge-cost-count").text("1");
   $("#surge-damage-count").text("0");
   $("#surge-pierce-count").text("0");
   $("#surge-accuracy-count").text("0");
@@ -455,6 +467,7 @@ function getCurrentDamage() {
   var dice = getDice();
   var modifiers = getModifiers();
   var surgeAbilities = getSurgeAbilities();
+  console.log(surgeAbilities);
   var distance = getDistance();
 
   return calculateDamage(dice, modifiers, surgeAbilities, distance);
@@ -477,6 +490,7 @@ function getSurgeAbilities() {
   var surgeAbilities = [];
   $("#target").find(".compiled-surge").each(function(index, compiledSurge) {
     surgeAbilities.push({
+      "cost": parseInt($(compiledSurge).find(".compiled-surge-cost-count").text()),
       "damage": parseInt($(compiledSurge).find(".compiled-surge-damage-count").text()),
       "pierce": parseInt($(compiledSurge).find(".compiled-surge-pierce-count").text()),
       "accuracy": parseInt($(compiledSurge).find(".compiled-surge-accuracy-count").text())
@@ -674,24 +688,30 @@ var DEFENSE_DIE_DEFINITIONS = {
  * this will return 1 for damage=4, and this will return 2 for damage=3.
  */
 function evaluateDamage(attackStats, defenseStats, surgeAbilities, damage, distance) {
+  var bestResult = -1;
   var availableSurges = Math.max(0, attackStats.surge - defenseStats.evade);
- 
-  for (var surgesToUse = 0; surgesToUse <= availableSurges
-      && surgesToUse <= surgeAbilities.length; surgesToUse++) {
-    var waysToChoose = nChooseRGenerator(surgeAbilities.length, surgesToUse);
+
+  // Since we know the cost of each surge is at least 1, we know not to select
+  // more abilities than available surges.
+  for (var abilitiesToUse = 0; abilitiesToUse <= availableSurges
+      && abilitiesToUse <= surgeAbilities.length; abilitiesToUse++) {
+    var waysToChoose = nChooseRGenerator(surgeAbilities.length, abilitiesToUse);
     for (var chooseIndices of waysToChoose) {
       var surgeAbilitiesToCheck = [];
+      var totalCost = 0;
       for (var i = 0; i < chooseIndices.length; i++) {
         surgeAbilitiesToCheck = surgeAbilitiesToCheck.concat(
             surgeAbilities[chooseIndices[i]]);
+        totalCost += surgeAbilities[chooseIndices[i]].cost;;
       }
+      if (totalCost > availableSurges) continue;
       if (meetsAttackRequirement(attackStats.attack, attackStats.accuracy, defenseStats.defense,
           surgeAbilitiesToCheck, damage, distance)) {
-        return availableSurges - surgesToUse;
+        bestResult = Math.max(bestResult, availableSurges - totalCost);
       }
     }
   }
-  return -1;
+  return bestResult;
 }
 
 /**

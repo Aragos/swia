@@ -173,6 +173,10 @@ h1 {
   margin: 2px 0 1px 2px;
 }
 
+.compiled-surge-cost-two img {
+  height: 7px;
+}
+
 .compiled-surge-label span {
   display: none;
   font-weight: bold;

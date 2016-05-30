@@ -283,13 +283,12 @@ h1 {
 /* Combining */
 #combine {
   background-color: #fdae6b;
-  margin: 5px 0 0 5px;
+  margin: 5px 0 10px 5px;
   border: 1px solid #555;
   cursor: default;
-  width: 45px;
+  width: 70px;
   height: 45px;
   border-radius: 8px;
-  float: left;
   text-align: center;
   line-height: 45px; /* == height to center line vertically */
 }

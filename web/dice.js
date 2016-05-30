@@ -625,7 +625,11 @@ function whiteDieDefinition() {
       { defense: 1, evade: 0},
       { defense: 1, evade: 1},
       { defense: 1, evade: 1},
-      { defense: 9999, evade: 0}]; // This is a dodge.
+      // This is a dodge. Note that for impractically large attack
+      // pools, this will provide an inaccurate result. Unfortunately
+      // this needs to be bounded by the size of defense outcome arrays.
+      // TODO: fix this.
+      { defense: 30, evade: 0}];
   return result;
 }
 
@@ -731,16 +735,13 @@ function* nChooseRGenerator(n, r) {
  * at the given distance.
  */
 function meetsAttackRequirement(attack, accuracy, defense, surgeAbilities, damage, distance) {
-  if (damage == 0) {
-    return true;
-  }
   for (var index in surgeAbilities) {
     var surgeAbility = surgeAbilities[index];
     attack += surgeAbility.damage;
     accuracy += surgeAbility.accuracy;
     defense = Math.max(0, defense - surgeAbility.pierce);
   }
-  return (accuracy >= distance) && (attack - defense >= damage);
+  return (accuracy >= distance) && (Math.max(0, attack - defense) >= damage);
 }
 
 /*
@@ -809,11 +810,8 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
   // This is a bit of a hack, as it is likely too large to be needed
   // for most calculations. It is also potentially too small for very large
   // calculations, yet practical inputs will not reach over 30 of any attribute.
-  outcomesArraySize = 30;
+  outcomesArraySize = 31;
   
-  // TODO: This currently only works for pow symbols on attack dice. Use accuracy,
-  // range, surges, and defense dice, as well as constant modifiers.
-
   currentAttOutcomes = array3d(outcomesArraySize);
   currentAttOutcomes[0][0][0] = 1;
   currentDefOutcomes = array2d(outcomesArraySize);

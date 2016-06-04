@@ -903,7 +903,7 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
               if (currentDefOutcomes[defense][evade] == 0) continue;
               var evaluation = evaluateDamage(
                   {attack:(attack + modifiers.damage), surge:(surge + modifiers.surge), accuracy:(accuracy + modifiers.accuracy)},
-                  {defense:(defense + modifiers.block), evade:(evade + modifiers.evade)},
+                  {defense:(Math.max(0, defense + modifiers.block - modifiers.pierce)), evade:(evade + modifiers.evade)},
                   surgeAbilities, damage,
                   distance);
               if (evaluation >= 0) {
@@ -961,14 +961,21 @@ function combineCdfs(cdfs) {
  */
 function combinePdfs(pdf1, pdf2) {
   var resultPdf = [];
+  var total = 0;
   for (var i = 0; i < pdf1.length + pdf2.length - 1; i++) {
     resultPdf[i] = 0;
   }
   for (var i = 0; i < pdf1.length; i++) {
     for (var j = 0; j < pdf2.length; j++) {
       resultPdf[i+j] += (pdf1[i] * pdf2[j]);
+      if (!(i == 0 && j == 0)) {
+        total += (pdf1[i] * pdf2[j]);
+      }
     }
   }
+  // Here we set pdf[0] to the remainder, to account for rounding errors.
+  resultPdf[0] = 1 - total;
+
   return resultPdf; 
 }
 

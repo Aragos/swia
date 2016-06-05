@@ -116,24 +116,35 @@ h1 {
 }
 
 #surge-label {
-  width: 43px;
+  width: 49px;
+  background-color: #ccc;
+  border-bottom-left-radius: 8px;
+  border-top-left-radius: 8px;
 }
 
-#surge-label span {
-  float: right;
-  font-size: 180%;
-  margin: -2px 0 0 0; /* Colons aren't perfectly centered, needs to be moved up to align. */
-}
-
-#surge-label img {
+.single-surge #surge-label-icon1 {
   width: 27px;
   height: 27px;
-  margin: 10px 1px 10px 0;
+  margin: 11px 9px 10px 0;
+  float: right;
+}
+
+.double-surge #surge-label-icon1 {
+  width: 27px;
+  height: 13px;
+  margin: 12px 9px 0 0;
+  float: right;
+}
+
+.double-surge #surge-label-icon2 {
+  width: 27px;
+  height: 13px;
+  margin: 0 9px 10px 0;
   float: right;
 }
 
 .surge-count {
-  width: 21px;
+  width: 19px;
   text-align: right;
   margin: 0 1px 0 0;
 }
@@ -146,7 +157,7 @@ h1 {
   display: none;
 }
 
-.compiled-surge-item {
+.compiled-surge-item, .compiled-surge-label {
   width: 22px;
   height: 22px;
   float: left;
@@ -157,7 +168,7 @@ h1 {
   background-color: white;
 }
 
-.compiled-surge-item * {
+.compiled-surge-item *, .compiled-surge-label * {
   float: left;
 }
 
@@ -167,21 +178,22 @@ h1 {
   margin: 6px 1px 6px 1px;
 }
 
-.compiled-surge-label img {
+.single-surge .compiled-surge-cost1 {
   width: 17px;
   height: 17px;
   margin: 2px 0 1px 2px;
 }
 
-.compiled-surge-cost-two img {
+.double-surge .compiled-surge-cost1 {
+  width: 17px;
   height: 7px;
+  margin: 4px 0 0 2px;
 }
 
-.compiled-surge-label span {
-  display: none;
-  font-weight: bold;
-  font-size: 140%;
-  margin: -1px 0 0 0;
+.compiled-surge-cost2 {
+  width: 17px;
+  height: 7px;
+  margin: 0 0 1px 2px;
 }
 
 .compiled-surge-label {

@@ -89,26 +89,45 @@ function setupTarget() {
         });
 }
 
+function makeSingleSurgeSource() {
+  $("#surge-label")
+      .removeClass("double-surge")
+      .addClass("single-surge");
+  $("#surge-label-icon2").hide();
+}
+
+function makeDoubleSurgeSource() {
+  $("#surge-label")
+      .removeClass("single-surge")
+      .addClass("double-surge");
+  $("#surge-label-icon2").show();
+}
+
 function setupSurgeSource() {
   $("#surge-source")
       .droppable({
-        accept: ".surge-modifier, .damage-modifier, .pierce-modifier, .accuracy-modifier",
+        accept: ".damage-modifier, .pierce-modifier, .accuracy-modifier",
         drop: function(event, dragged) {
           var draggable = dragged.draggable;
           if (draggable.hasClass("target-element")) {
             draggable.remove();
           }
-          if (draggable.hasClass("surge-modifier")) {
-            var prevCost = parseInt($("#surge-cost-count").text());
-            var newCost = prevCost > 1 ? 1 : 2; 
-            $("#surge-cost-count").text(newCost); 
-          } else if (draggable.hasClass("damage-modifier")) {
+          if (draggable.hasClass("damage-modifier")) {
             increaseCount("#surge-damage-count");
           } else if (draggable.hasClass("pierce-modifier")) {
             increaseCount("#surge-pierce-count");
           } else if (draggable.hasClass("accuracy-modifier")) {
             increaseCount("#surge-accuracy-count");
           }
+        }
+      });
+
+  $("#surge-label")
+      .click(function() {
+        if ($("#surge-label").hasClass("double-surge")) {
+          makeSingleSurgeSource();
+        } else {
+          makeDoubleSurgeSource();
         }
       });
 }
@@ -140,13 +159,12 @@ function makeSurgeDraggable() {
  */
 function getCompiledSurge() {
   var compiled = $("#compiled-surge-template").clone();
-  compiled.find(".compiled-surge-cost-count").text($("#surge-cost-count").text().trim());
-  var surgeCost = parseInt($("#surge-cost-count").text().trim());
-  if (surgeCost == 2) {
-    compiled.find(".compiled-surge-cost").hide();
-  } else {
-    compiled.find(".compiled-surge-cost-two").hide();
+  if ($("#surge-label").hasClass("double-surge")) {
+    compiled.find(".compiled-surge-label").removeClass("single-surge");
+    compiled.find(".compiled-surge-label").addClass("double-surge");
+    compiled.find(".compiled-surge-cost2").show();
   }
+
   compiled.find(".compiled-surge-damage-count").text($("#surge-damage-count").text().trim());
   compiled.find(".compiled-surge-pierce-count").text($("#surge-pierce-count").text().trim());
   compiled.find(".compiled-surge-accuracy-count").text($("#surge-accuracy-count").text().trim());
@@ -155,6 +173,7 @@ function getCompiledSurge() {
 }
 
 function resetSurgeSource() {
+  makeSingleSurgeSource();
   $("#surge-cost-count").text("1");
   $("#surge-damage-count").text("0");
   $("#surge-pierce-count").text("0");
@@ -501,7 +520,7 @@ function getSurgeAbilities() {
   var surgeAbilities = [];
   $("#target").find(".compiled-surge").each(function(index, compiledSurge) {
     surgeAbilities.push({
-      "cost": parseInt($(compiledSurge).find(".compiled-surge-cost-count").text()),
+      "cost": $(compiledSurge).find(".compiled-surge-label").hasClass("double-surge") ? 2 : 1,
       "damage": parseInt($(compiledSurge).find(".compiled-surge-damage-count").text()),
       "pierce": parseInt($(compiledSurge).find(".compiled-surge-pierce-count").text()),
       "accuracy": parseInt($(compiledSurge).find(".compiled-surge-accuracy-count").text())

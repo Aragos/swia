@@ -64,9 +64,9 @@
 
   <div class="whole-width">
     <div id="surge-source" class="surge-source">
-      <div id="surge-label">
-        <span>:</span><img src="icons/surge.svg" alt="Surge"/>
-        <div id="surge-cost-count">1</div>
+      <div id="surge-label" class="single-surge">
+        <img id="surge-label-icon1" src="icons/surge.svg" alt="Surge"/>
+        <img id="surge-label-icon2" src="icons/surge.svg" alt="Surge" style="display:none"/>
       </div>
       <div id="surge-damage-count" class="surge-count">
         0
@@ -120,15 +120,9 @@
 
   <!-- Hidden surge template -->
   <div id="compiled-surge-template" class="element compiled-surge">
-    <div class="compiled-surge-item compiled-surge-label">
-      <div class="compiled-surge-cost">
-        <img src="icons/surge.svg" alt="Surge" class="compiled-surge-cost"/>
-      </div>
-      <div class="compiled-surge-cost-two">
-        <img src="icons/surge.svg" alt="Surge"/>
-        <img src="icons/surge.svg" alt="Surge"/>
-      </div>
-      <span class="compiled-surge-cost-count">1</span>
+    <div class="compiled-surge-label single-surge">
+      <img src="icons/surge.svg" alt="Surge" class="compiled-surge-cost1"/>
+      <img src="icons/surge.svg" alt="Surge" class="compiled-surge-cost2" style="display: none"/>
     </div>
     <div class="compiled-surge-item compiled-surge-damage">
       <span class="compiled-surge-damage-count">0</span><img src="icons/damage.svg" alt="Surge Damage Modifier"/>

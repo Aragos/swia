@@ -116,7 +116,7 @@ h1 {
 }
 
 #surge-label {
-  width: 49px;
+  width: 52px;
   background-color: #ccc;
   border-bottom-left-radius: 8px;
   border-top-left-radius: 8px;
@@ -125,26 +125,26 @@ h1 {
 .single-surge #surge-label-icon1 {
   width: 27px;
   height: 27px;
-  margin: 11px 9px 10px 0;
+  margin: 11px 12px 10px 0;
   float: right;
 }
 
 .double-surge #surge-label-icon1 {
   width: 27px;
   height: 13px;
-  margin: 12px 9px 0 0;
+  margin: 12px 12px 0 0;
   float: right;
 }
 
 .double-surge #surge-label-icon2 {
   width: 27px;
   height: 13px;
-  margin: 0 9px 10px 0;
+  margin: 0 12px 10px 0;
   float: right;
 }
 
 .surge-count {
-  width: 19px;
+  width: 18px;
   text-align: right;
   margin: 0 1px 0 0;
 }

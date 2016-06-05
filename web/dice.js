@@ -192,8 +192,10 @@ function updatePlaceholder() {
 }
 
 function setupRanged() {
+  console.log("registered ranged");
   $("#ranged-plus")
       .click(function() {
+        console.log("range plus");
         increaseCount("#ranged-value");
         updateProbabilitiesAsync();
       });
@@ -726,20 +728,20 @@ function evaluateDamage(attackStats, defenseStats, surgeAbilities, damage, dista
   for (var abilitiesToUse = 0; abilitiesToUse <= availableSurges
       && abilitiesToUse <= surgeAbilities.length; abilitiesToUse++) {
     var waysToChoose = nChooseRGenerator(surgeAbilities.length, abilitiesToUse);
-    for (var chooseIndices of waysToChoose) {
+    $.each(waysToChoose, function(_, chooseIndices) {
       var surgeAbilitiesToCheck = [];
       var totalCost = 0;
       for (var i = 0; i < chooseIndices.length; i++) {
         surgeAbilitiesToCheck = surgeAbilitiesToCheck.concat(
             surgeAbilities[chooseIndices[i]]);
-        totalCost += surgeAbilities[chooseIndices[i]].cost;;
+        totalCost += surgeAbilities[chooseIndices[i]].cost;
       }
-      if (totalCost > availableSurges) continue;
+      if (totalCost > availableSurges) return;
       if (meetsAttackRequirement(attackStats.attack, attackStats.accuracy, defenseStats.defense,
           surgeAbilitiesToCheck, damage, distance)) {
         bestResult = Math.max(bestResult, availableSurges - totalCost);
       }
-    }
+    });
   }
   return bestResult;
 }
@@ -751,13 +753,14 @@ function evaluateDamage(attackStats, defenseStats, surgeAbilities, damage, dista
  *
  * For example, n=3, r=2 would provide [0, 1], then [0, 2], then [1, 2].
  */
-function* nChooseRGenerator(n, r) {
+function nChooseRGenerator(n, r) {
   var currentState = [];
-  for (var i=0; i<r; i++) {
-    currentState = currentState.concat(i);
+  for (var j=0; j<r; j++) {
+    currentState = currentState.concat(j);
   }
+  var results = [];
   while (true) {
-    yield currentState.slice();
+    results.push(currentState.slice());
     // Start from the last digit and attempt to increment, iterate
     // back towards the start until one can be incremented.
     for (var i=r-1; i >= 0; i--) {
@@ -774,7 +777,7 @@ function* nChooseRGenerator(n, r) {
     }
     if (i < 0) {
       // Was unable to increment, so there's nothing more to enumerate.
-      return;
+      return results;
     }
   }
 }

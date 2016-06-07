@@ -4,6 +4,7 @@ function setupDrops() {
   setupTarget();
   setupSurgeSource();
   makeSurgeDraggable();
+  setupCombineTarget();
 }
 
 function makeElementsDraggable() {
@@ -63,6 +64,7 @@ function setupTarget() {
           drop: function(event, dragged) {
             var droppable = this;
 
+            //noinspection JSUnresolvedVariable
             var newElementPromise = Promise.resolve(dragged.draggable);
             if (!dragged.draggable.hasClass("element")) { // it's a surge source, but we want the compiled surge
               newElementPromise = dragged.helper.compiledSurge.then(function(newElement) {
@@ -133,7 +135,7 @@ function setupSurgeSource() {
 }
 
 function makeSurgeDraggable() {
-  // TODO: Only allow dragging (and drag cursor) when there are non-zero values on surge?
+  // TODO: Only allow dragging (and drag cursor) when there are non-zero values on surge.
   $("#surge-source")
       .draggable({
         appendTo: "body",
@@ -145,7 +147,8 @@ function makeSurgeDraggable() {
           // dragged. Because it is a promise it doesn't have to be completed by the time the surge
           // is dropped, the drop() method can just call then() on it to get the eventually computed
           // result.
-          dragged.helper.compiledSurge = new Promise(function(resolve, reject) {
+          //noinspection JSUnresolvedFunction
+          dragged.helper.compiledSurge = new Promise(function(resolve) {
            setTimeout(function() {
              resolve(getCompiledSurge());
            }, 0);
@@ -192,10 +195,8 @@ function updatePlaceholder() {
 }
 
 function setupRanged() {
-  console.log("registered ranged");
   $("#ranged-plus")
       .click(function() {
-        console.log("range plus");
         increaseCount("#ranged-value");
         updateProbabilitiesAsync();
       });
@@ -318,14 +319,14 @@ function setupPin(pinnedDataMap) {
         var pinned = $("<div class='pinned'></div>");
         $("#target")
             .find(".element")
-            .each(function(i, element) {
+            .each(function(_, element) {
               var pinnedElement = $("<div class='pinned-element'></div>");
-              $.each($(element).attr('class').split(/\s+/), function(j, clazz) {
+              $.each($(element).attr('class').split(/\s+/), function(_, clazz) {
                 if (clazz != "element") {
                   pinnedElement.addClass(clazz);
                 }
               });
-              $(element).find('.element-icon').each(function(k, img) {
+              $(element).find('.element-icon').each(function(_, img) {
                 pinnedElement.append($(img).clone());
               });
               // TODO: Copy surge contents, text
@@ -358,6 +359,10 @@ function togglePinned(pinId, pinned, chartData, damageData, pinnedDataMap) {
     pinned.addClass("pinned-active");
     pinned.removeClass("pinned-inactive");
   }
+}
+
+function setupCombineTarget() {
+  
 }
 
 var CHART_COLORS = {
@@ -520,7 +525,7 @@ function getDistance() {
 
 function getSurgeAbilities() {
   var surgeAbilities = [];
-  $("#target").find(".compiled-surge").each(function(index, compiledSurge) {
+  $("#target").find(".compiled-surge").each(function(_, compiledSurge) {
     surgeAbilities.push({
       "cost": $(compiledSurge).find(".compiled-surge-label").hasClass("double-surge") ? 2 : 1,
       "damage": parseInt($(compiledSurge).find(".compiled-surge-damage-count").text()),
@@ -593,7 +598,7 @@ function compareByCount(a, b) {
  * Creates and returns a size by size by size 2D array (with 0 values).
  */
 function array2d(size) {
-  result = [];
+  var result = [];
   for (var i = 0; i < size; i++) {
     result[i] = [];
     for (var j = 0; j < size; j++) {
@@ -607,7 +612,7 @@ function array2d(size) {
  * Creates and returns a size by size by size 3D array (with 0 values).
  */
 function array3d(size) {
-  result = [];
+  var result = [];
   for (var i = 0; i < size; i++) {
     result[i] = [];
     for (var j = 0; j < size; j++) {
@@ -621,51 +626,47 @@ function array3d(size) {
 }
 
 function redDieDefinition() {
-  result = [
+  return [
       { attack: 1, surge: 0, accuracy: 0},
       { attack: 2, surge: 0, accuracy: 0},
       { attack: 2, surge: 0, accuracy: 0},
       { attack: 2, surge: 1, accuracy: 0},
       { attack: 3, surge: 0, accuracy: 0},
       { attack: 3, surge: 0, accuracy: 0}];
-  return result;
 }
 
 function blueDieDefinition() {
-  result = [
+  return [
       { attack: 0, surge: 1, accuracy: 2},
       { attack: 1, surge: 0, accuracy: 2},
       { attack: 2, surge: 0, accuracy: 3},
       { attack: 1, surge: 1, accuracy: 3},
       { attack: 2, surge: 0, accuracy: 4},
       { attack: 1, surge: 0, accuracy: 5}];
-  return result;
 }
 
 function greenDieDefinition() {
-  result = [
+  return [
       { attack: 0, surge: 1, accuracy: 1},
       { attack: 1, surge: 1, accuracy: 1},
       { attack: 2, surge: 0, accuracy: 1},
       { attack: 1, surge: 1, accuracy: 2},
       { attack: 2, surge: 0, accuracy: 2},
       { attack: 2, surge: 0, accuracy: 3}];
-  return result;
 }
 
 function yellowDieDefinition() {
-  result = [
+  return [
       { attack: 0, surge: 1, accuracy: 0},
       { attack: 1, surge: 2, accuracy: 0},
       { attack: 2, surge: 0, accuracy: 1},
       { attack: 1, surge: 1, accuracy: 1},
       { attack: 0, surge: 1, accuracy: 2},
       { attack: 1, surge: 0, accuracy: 2}];
-  return result;
 }
 
 function whiteDieDefinition() {
-  result = [
+  return [
       { defense: 0, evade: 0},
       { defense: 0, evade: 1},
       { defense: 1, evade: 0},
@@ -676,18 +677,16 @@ function whiteDieDefinition() {
       // this needs to be bounded by the size of defense outcome arrays.
       // TODO: fix this.
       { defense: 30, evade: 0}];
-  return result;
 }
 
 function blackDieDefinition() {
-  result = [
+  return [
       { defense: 0, evade: 1},
       { defense: 1, evade: 0},
       { defense: 1, evade: 0},
       { defense: 2, evade: 0},
       { defense: 2, evade: 0},
       { defense: 3, evade: 0}];
-  return result;
 }
 
 /**
@@ -699,7 +698,7 @@ var ATTACK_DIE_DEFINITIONS = {
   "blue" : blueDieDefinition(),
   "green" : greenDieDefinition(),
   "yellow" : yellowDieDefinition()
-}
+};
 
 /**
  * Map from die color name (e.g. "yellow") to a size-6 array of struct defining the attack, surge,
@@ -708,7 +707,7 @@ var ATTACK_DIE_DEFINITIONS = {
 var DEFENSE_DIE_DEFINITIONS = {
   "black" : blackDieDefinition(),
   "white" : whiteDieDefinition()
-}
+};
 
 /**
  * Evaluates whether the given attack stats (attack/surge/accuracy struct) with given
@@ -788,12 +787,11 @@ function nChooseRGenerator(n, r) {
  * at the given distance.
  */
 function meetsAttackRequirement(attack, accuracy, defense, surgeAbilities, damage, distance) {
-  for (var index in surgeAbilities) {
-    var surgeAbility = surgeAbilities[index];
+  $.each(surgeAbilities, function(_, surgeAbility) {
     attack += surgeAbility.damage;
     accuracy += surgeAbility.accuracy;
     defense = Math.max(0, defense - surgeAbility.pierce);
-  }
+  });
   return (accuracy >= distance) && (Math.max(0, attack - defense) >= damage);
 }
 
@@ -812,9 +810,9 @@ function meetsAttackRequirement(attack, accuracy, defense, surgeAbilities, damag
  * then this will return the outcome array of rolling a green, yellow, and red die together.
  */
 function combineAttOutcomes(outcomeArray, dieOutcomes) {
-  result = array3d(outcomeArray.length);
+  var result = array3d(outcomeArray.length);
   for (var dieOutcomeIndex = 0; dieOutcomeIndex < dieOutcomes.length; dieOutcomeIndex++) {
-    dieOutcome = dieOutcomes[dieOutcomeIndex];
+    var dieOutcome = dieOutcomes[dieOutcomeIndex];
     for (var i = 0; i + dieOutcome.attack < outcomeArray.length; i++) {
       for (var j = 0; j + dieOutcome.surge < outcomeArray[i].length; j++) {
         for (var k = 0; k + dieOutcome.accuracy < outcomeArray[i][j].length; k++) {
@@ -832,9 +830,9 @@ function combineAttOutcomes(outcomeArray, dieOutcomes) {
  * Like combineAttOutcomes, except using defense outcome arrays and defense dice. 
  */
 function combineDefOutcomes(outcomeArray, dieOutcomes) {
-  result = array2d(outcomeArray.length);
+  var result = array2d(outcomeArray.length);
   for (var dieOutcomeIndex = 0; dieOutcomeIndex < dieOutcomes.length; dieOutcomeIndex++) {
-    dieOutcome = dieOutcomes[dieOutcomeIndex];
+    var dieOutcome = dieOutcomes[dieOutcomeIndex];
     for (var i = 0; i + dieOutcome.defense < outcomeArray.length; i++) {
       for (var j = 0; j + dieOutcome.evade < outcomeArray[i].length; j++) {
           result[i + dieOutcome.defense][j + dieOutcome.evade] += outcomeArray[i][j];
@@ -863,34 +861,34 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
   // This is a bit of a hack, as it is likely too large to be needed
   // for most calculations. It is also potentially too small for very large
   // calculations, yet practical inputs will not reach over 30 of any attribute.
-  outcomesArraySize = 31;
+  var outcomesArraySize = 31;
   
-  currentAttOutcomes = array3d(outcomesArraySize);
+  var currentAttOutcomes = array3d(outcomesArraySize);
   currentAttOutcomes[0][0][0] = 1;
-  currentDefOutcomes = array2d(outcomesArraySize);
+  var currentDefOutcomes = array2d(outcomesArraySize);
   currentDefOutcomes[0][0] = 1;
   // Number of different ways the dice can roll.
-  totalPermutations = 1;
+  var totalPermutations = 1;
 
-  for (var dieColor in dice) {
-    attDieOutcomes = ATTACK_DIE_DEFINITIONS[dieColor];
-    defDieOutcomes = DEFENSE_DIE_DEFINITIONS[dieColor];
+  $.each(dice, function(dieColor) {
+    var attDieOutcomes = ATTACK_DIE_DEFINITIONS[dieColor];
+    var defDieOutcomes = DEFENSE_DIE_DEFINITIONS[dieColor];
     if (typeof attDieOutcomes !== 'undefined') {
-      for (var numDiceRemaining = dice[dieColor]; numDiceRemaining > 0; numDiceRemaining--) {
+      for (var attDiceRemaining = dice[dieColor]; attDiceRemaining > 0; attDiceRemaining--) {
         totalPermutations *= 6;
         currentAttOutcomes = combineAttOutcomes(currentAttOutcomes, attDieOutcomes);
       }
     }
     if (typeof defDieOutcomes !== 'undefined') {
-      for (var numDiceRemaining = dice[dieColor]; numDiceRemaining > 0; numDiceRemaining--) {
+      for (var defDiceRemaining = dice[dieColor]; defDiceRemaining > 0; defDiceRemaining--) {
         totalPermutations *= 6;
         currentDefOutcomes = combineDefOutcomes(currentDefOutcomes, defDieOutcomes);
       }
     }
-  }
+  });
  
-  cdfNumerators = [];
-  extraSurgeNumerators = [];
+  var cdfNumerators = [];
+  var extraSurgeNumerators = [];
   for (var damage = 0; damage < currentAttOutcomes.length; damage++) {
     cdfNumerators[damage] = 0;
     extraSurgeNumerators[damage] = 0;
@@ -919,7 +917,7 @@ function calculateDamage(dice, modifiers, surgeAbilities, distance) {
     }
   }
 
-  result = [];
+  var result = [];
   for (var i = 0; i < currentAttOutcomes.length; i++) {
     if (cdfNumerators[i] > 0) {
       result.push({ count: i, damage: (cdfNumerators[i] / totalPermutations), surge: (extraSurgeNumerators[i] / totalPermutations)});
@@ -946,9 +944,9 @@ function combineCdfs(cdfs) {
   }
   var cleanResultCdf = pdfToCdf(cumulativePdf);
   var result = [];
-  for (var i = 0; i < cleanResultCdf.length; i++) {
-    if (cleanResultCdf[i] > 0) {
-      result.push({ count: i, damage: cleanResultCdf[i], surge: 0});
+  for (var j = 0; j < cleanResultCdf.length; j++) {
+    if (cleanResultCdf[j] > 0) {
+      result.push({ count: j, damage: cleanResultCdf[j], surge: 0});
     }
   }
   return result;
@@ -965,11 +963,11 @@ function combinePdfs(pdf1, pdf2) {
   for (var i = 0; i < pdf1.length + pdf2.length - 1; i++) {
     resultPdf[i] = 0;
   }
-  for (var i = 0; i < pdf1.length; i++) {
-    for (var j = 0; j < pdf2.length; j++) {
-      resultPdf[i+j] += (pdf1[i] * pdf2[j]);
-      if (!(i == 0 && j == 0)) {
-        total += (pdf1[i] * pdf2[j]);
+  for (var j = 0; j < pdf1.length; j++) {
+    for (var k = 0; k < pdf2.length; k++) {
+      resultPdf[j+k] += (pdf1[j] * pdf2[k]);
+      if (!(j == 0 && k == 0)) {
+        total += (pdf1[j] * pdf2[k]);
       }
     }
   }
@@ -997,7 +995,7 @@ function cdfToPdf(cdf) {
 /**
  * Given a graph-compatible CDF array, return a "clean" CDF array.
  *
- * @param cdf a "cdf" array containing elements with three defined fields:
+ * @param graphCdf a "cdf" array containing elements with three defined fields:
  *     "count", "damage", and "surge".
  * @return a clean cdf array. cdf[i] represents the probability that the value is at least i.
  */

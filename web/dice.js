@@ -39,7 +39,7 @@ function setupElementTrash() {
           var draggable = dragged.draggable;
           if (draggable.hasClass("target-element")) {
             draggable.remove();
-            updatePlaceholder();
+            updateTargetPlaceholder();
             updateProbabilitiesAsync();
           } else if (draggable.hasClass("surge-element")) {
             if (draggable.hasClass("damage-modifier")) {
@@ -71,8 +71,8 @@ function setupTarget() {
                 resetSurgeSource();
                 return newElement;
               });
-
             }
+
             newElementPromise.then(function(newElement) {
               newElement
                   .clone()
@@ -84,7 +84,7 @@ function setupTarget() {
                   })
                   .appendTo(droppable);
 
-              updatePlaceholder();
+              updateTargetPlaceholder();
               updateProbabilitiesAsync();
             });
           }
@@ -186,7 +186,7 @@ function resetSurgeSource() {
 /**
  * Updates the placeholder in the target area to show only if there are no elements in it.
  */
-function updatePlaceholder() {
+function updateTargetPlaceholder() {
   if ($("#target").find(".element").length == 0) {
     $("#target-placeholder").show();
   } else {
@@ -276,39 +276,17 @@ function setupClear() {
   $("#clear")
       .click(function() {
         $("#target").find(".target-element").remove();
-        updatePlaceholder();
+        updateTargetPlaceholder();
         updateProbabilitiesAsync();
       });
 }
 
-/**
- * Initializes the combine button.
- *
- * @param pinnedDataMap a shared map between components, this map contains entries where,
- *     for each currently toggled target, an entry is present. Keys are pin IDs, and values
- *     are the damage data for that target
- */
-function setupCombine(pinnedDataMap) {
-  $("#combine")
-      .click(function() {
-        var selectedDamages = [];
-        for (var pinId in pinnedDataMap) {
-          selectedDamages.push(pinnedDataMap[pinId]);
-        }
-        var combinedDamage = combineCdfs(selectedDamages); 
-        var chartData =  damageToChartData(combinedDamage);
-        setChartData("current", chartData);
-      });
-}
+var pinnedDamageData = [];
 
 /**
  * Initializes the pin button.
- *
- * @param pinnedDataMap a shared map between components, this map contains entries where,
- *     for each currently toggled target, an entry is present. Keys are pin IDs, and values
- *     are the damage data for that target
  */
-function setupPin(pinnedDataMap) {
+function setupPin() {
   // TODO: Include range in pinned (visuals)
   // TODO: Include re-rolls in pinned
   // TODO: Add clear functionality to remove individual/all pins.
@@ -332,29 +310,59 @@ function setupPin(pinnedDataMap) {
               // TODO: Copy surge contents, text
               pinnedElement.appendTo(pinned);
             });
-        pinned.appendTo($("#pinned-area"));
 
+        var pinnedArea = $("#pinned-area");
+        pinned.appendTo(pinnedArea);
+
+        if (pinnedArea.find(".pinned").length > 4) {
+          pinnedArea.css("height", "73px"); // normal height + 15px for horizontal scroll bar
+        } else {
+          pinnedArea.css("height", "58px"); // normal height
+        }
+
+        pinned.draggable({
+          appendTo: "body",
+          helper: "clone",
+          revert: "invalid", // jump back if not dropped on droppable
+          revertDuration: 200
+        });
+
+        // TODO: A lot of logic relies on the pinId being unique. Figure out what to do if you can
+        // remove pins.
         var pinId = getFreePinId();
         pinned.css("border-color", CHART_COLORS[pinId]);
+        pinned.addClass("pin-" + pinId);
         var damageData = getCurrentDamage();
+        pinnedDamageData[pinId] = damageData;
+
         var chartData = damageToChartData(damageData);
         var toggle = function() {
-          togglePinned(pinId, pinned, chartData, damageData, pinnedDataMap);
+          togglePinned(pinId, pinned, chartData);
         };
         pinned.click(toggle);
         toggle();
         removeChart("current");
       });
+
+  // Set up trashing of combineds.
+  $("#pinned-area")
+      .droppable({
+        accept: ".combined",
+        drop: function(event, dragged) {
+          var draggable = dragged.draggable;
+          draggable.remove();
+          updateCombined();
+          updateCombinedPlaceholder();
+        }
+      });
 }
 
-function togglePinned(pinId, pinned, chartData, damageData, pinnedDataMap) {
+function togglePinned(pinId, pinned, chartData) {
   if (pinned.hasClass("pinned-active")) {
-    delete pinnedDataMap[pinId];
     removeChart(pinId);
     pinned.addClass("pinned-inactive");
     pinned.removeClass("pinned-active");
   } else {
-    pinnedDataMap[pinId] = damageData;
     setChartData(pinId, chartData);
     pinned.addClass("pinned-active");
     pinned.removeClass("pinned-inactive");
@@ -362,11 +370,71 @@ function togglePinned(pinId, pinned, chartData, damageData, pinnedDataMap) {
 }
 
 function setupCombineTarget() {
-  
+  $("#combine-area")
+      .droppable({
+        accept: function(element) {
+          // TODO: prevent dropping more than 5 items
+          return element.hasClass("pinned") && !element.hasClass("combined");
+        },
+        drop: function(event, dragged) {
+          var draggable = dragged.draggable;
+          if (draggable.hasClass("combined")) {
+            return;
+          }
+
+          var combined = draggable.clone()
+              .addClass("combined")
+              .draggable({
+                appendTo: "body",
+                revert: "invalid", // jump back if not dropped on droppable
+                revertDuration: 200
+              })
+              .appendTo(this);
+
+          updateCombined();
+          updateCombinedPlaceholder();
+        }
+      });
+}
+
+function combinedElementToPinId(combinedElement) {
+  var pinId = -1;
+  $.each($(combinedElement).attr('class').split(/\s+/), function(_, clazz) {
+    if (/pin-\d+/.test(clazz)) {
+      pinId = clazz.substring(4);
+    }
+  });
+  if (pinId > -1) {
+    return pinId;
+  }
+  throw "input is not a combined element";
+}
+
+function updateCombined() {
+  var selectedDamages = [];
+  $("#combine-area").find(".combined").each(function(_, combinedElement) {
+    var pinId = combinedElementToPinId(combinedElement);
+    selectedDamages.push(pinnedDamageData[pinId]);
+  });
+  var combinedDamage = combineCdfs(selectedDamages);
+  var chartData =  damageToChartData(combinedDamage);
+  setCombinedChartData("combined", chartData);
+}
+
+function updateCombinedPlaceholder() {
+  var combinedArea = $("#combine-area");
+  if (combinedArea.find(".combined").length == 0) {
+    $("#combined-placeholder").show();
+    combinedArea.css("border-width", "0");
+  } else {
+    $("#combined-placeholder").hide();
+    combinedArea.css("border-width", "2px");
+  }
 }
 
 var CHART_COLORS = {
   current: "black",
+  combined: "#a55194",
   0: "#1f77b4",
   1: "#ff7f0e",
   2: "#2ca02c",
@@ -381,7 +449,6 @@ var CHART_COLORS = {
   11: "#637939",
   12: "#8c6d31",
   13: "#ad494a",
-  14: "#a55194",
 };
 
 /**
@@ -464,6 +531,38 @@ function setChartData(suffix, chartData) {
 
   damage.setData(chartData.damageData, false);
   surge.setData(chartData.surgeData, false);
+
+  damageChart.redraw();
+  justifySeries(damageChart);
+  damageChart.redraw();
+}
+
+function setCombinedChartData(suffix, chartData) {
+  // TODO: Don't display empty chart data.
+
+  var damageChart = $("#chart").highcharts();
+  var damage = damageChart.get("damage-" + suffix);
+  if (!damage) {
+    var color = CHART_COLORS[suffix];
+    damage = damageChart.addSeries({
+      id: "damage-" + suffix,
+      name: "Damage",
+      color: color,
+      fillOpacity:.2,
+      dashStyle: "Dot",
+      lineWidth: 2,
+      marker: {
+        symbol: "circle",
+        radius: 3,
+      },
+      animation: false,
+      tooltip: {
+        pointFormat: "<b>{series.name}: {point.y}</b><br/>"
+      },
+    }, false);
+  }
+
+  damage.setData(chartData.damageData, false);
 
   damageChart.redraw();
   justifySeries(damageChart);

@@ -39,7 +39,7 @@ function setupElementTrash() {
           var draggable = dragged.draggable;
           if (draggable.hasClass("target-element")) {
             draggable.remove();
-            updateTargetPlaceholder();
+            updateTargetPlaceholderAndPin();
             updateProbabilitiesAsync();
           } else if (draggable.hasClass("surge-element")) {
             if (draggable.hasClass("damage-modifier")) {
@@ -85,7 +85,7 @@ function setupTarget() {
                   })
                   .appendTo(droppable);
 
-              updateTargetPlaceholder();
+              updateTargetPlaceholderAndPin();
               updateProbabilitiesAsync();
             });
           }
@@ -199,11 +199,13 @@ function resetSurgeSource() {
 /**
  * Updates the placeholder in the target area to show only if there are no elements in it.
  */
-function updateTargetPlaceholder() {
+function updateTargetPlaceholderAndPin() {
   if ($("#target").find(".element").length == 0) {
     $("#target-placeholder").show();
+    $("#pin").addClass("disabled");
   } else {
     $("#target-placeholder").hide();
+    $("#pin").removeClass("disabled");
   }
 }
 
@@ -273,7 +275,7 @@ function setupChart() {
 
 var pinIdsInUse = [];
 function getFreePinId() {
-  for (var i = 0; i < 15; ++i) {
+  for (var i = 0; i < 14; ++i) {
     if (pinIdsInUse.indexOf(i) == -1) {
       pinIdsInUse.push(i);
       return i;
@@ -289,7 +291,7 @@ function setupClear() {
   $("#clear")
       .click(function() {
         $("#target").find(".target-element").remove();
-        updateTargetPlaceholder();
+        updateTargetPlaceholderAndPin();
         updateProbabilitiesAsync();
       });
 }
@@ -305,11 +307,15 @@ function setupPin() {
   // TODO: Add clear functionality to remove individual/all pins.
   $("#pin")
       .click(function() {
-        // TODO: Don't pin empty area
         // TODO: Don't pin already-pinned configuration
+        var targetElements = $("#target").find(".element");
+
+        if (targetElements.length == 0) {
+          return;
+        }
+
         var pinned = $("<div class='pinned'></div>");
-        $("#target")
-            .find(".element")
+        targetElements
             .each(function(_, element) {
               var pinnedElement = $("<div class='pinned-element'></div>");
               $.each($(element).attr('class').split(/\s+/), function(_, clazz) {
@@ -365,7 +371,7 @@ function setupPin() {
           var draggable = dragged.draggable;
           draggable.remove();
           updateCombined();
-          updateCombinedPlaceholder();
+          updateCombinedPlaceholderAndState();
         }
       });
 }
@@ -405,7 +411,7 @@ function setupCombineTarget() {
               .appendTo(this);
 
           updateCombined();
-          updateCombinedPlaceholder();
+          updateCombinedPlaceholderAndState();
         }
       });
 }
@@ -434,7 +440,7 @@ function updateCombined() {
   setCombinedChartData("combined", chartData);
 }
 
-function updateCombinedPlaceholder() {
+function updateCombinedPlaceholderAndState() {
   var combinedArea = $("#combine-area");
   if (combinedArea.find(".combined").length == 0) {
     $("#combined-placeholder").show();

@@ -324,6 +324,11 @@ h1 {
   line-height: 45px; /* == height to center line vertically */
 }
 
+#pin.disabled {
+  background-color: #a77347;
+  color: #444;
+}
+
 #pinned-area {
   overflow-x: auto;
   white-space: nowrap;

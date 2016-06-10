@@ -387,8 +387,8 @@ function setupCombineTarget() {
   $("#combine-area")
       .droppable({
         accept: function(element) {
-          // TODO: prevent dropping more than 5 items
-          return element.hasClass("pinned") && !element.hasClass("combined");
+          return element.hasClass("pinned") && !element.hasClass("combined") &&
+              $(this).find(".combined").length < 5;
         },
         drop: function(event, dragged) {
           var draggable = dragged.draggable;

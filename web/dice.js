@@ -273,15 +273,23 @@ function setupChart() {
   });
 }
 
-var pinIdsInUse = [];
-function getFreePinId() {
+var nextPinId = 0;
+var colorsInUse = [];
+
+/**
+ * Returns a previously unused color and allocates it as used.
+ */
+function allocateColor() {
   for (var i = 0; i < 14; ++i) {
-    if (pinIdsInUse.indexOf(i) == -1) {
-      pinIdsInUse.push(i);
+    if (!(i in colorsInUse)) {
+      colorsInUse.push(i);
+      if (colorsInUse.length == 14) {
+        $("#pin").addClass("disabled");
+      }
       return i;
     }
   }
-  throw "No more pin IDs"; // TODO: Disable Pin button before this becomes necessary.
+  throw "No more available colors";
 }
 
 /**
@@ -318,7 +326,7 @@ function setupPin() {
         // TODO: Don't pin already-pinned configuration
         var targetElements = $("#target").find(".element");
 
-        if (targetElements.length == 0) {
+        if (targetElements.length == 0 || colorsInUse.length == 14) {
           return;
         }
 
@@ -349,17 +357,16 @@ function setupPin() {
           revertDuration: 200
         });
 
-        // TODO: A lot of logic relies on the pinId being unique. Figure out what to do if you can
-        // remove pins.
-        var pinId = getFreePinId();
-        pinned.css("border-color", CHART_COLORS[pinId]);
+        var pinId = nextPinId++;
+        var colorId = allocateColor();
+        pinned.css("border-color", CHART_COLORS[colorId]);
         pinned.addClass("pin-" + pinId);
         var damageData = getCurrentDamage();
         pinnedDamageData[pinId] = damageData;
 
         var chartData = damageToChartData(damageData);
         var toggle = function() {
-          togglePinned(pinId, pinned, chartData);
+          togglePinned(pinId, pinned, chartData, colorId);
         };
         pinned.click(toggle);
         toggle();
@@ -379,13 +386,13 @@ function setupPin() {
       });
 }
 
-function togglePinned(pinId, pinned, chartData) {
+function togglePinned(pinId, pinned, chartData, colorId) {
   if (pinned.hasClass("pinned-active")) {
     removeChart(pinId);
     pinned.addClass("pinned-inactive");
     pinned.removeClass("pinned-active");
   } else {
-    setChartData(pinId, chartData);
+    setChartData(pinId, chartData, colorId);
     pinned.addClass("pinned-active");
     pinned.removeClass("pinned-inactive");
   }
@@ -440,7 +447,7 @@ function updateCombined() {
   });
   var combinedDamage = combineCdfs(selectedDamages);
   var chartData =  damageToChartData(combinedDamage);
-  setCombinedChartData("combined", chartData);
+  setCombinedChartData("combined", chartData, "combined");
 }
 
 function updateCombinedPlaceholderAndState() {
@@ -509,14 +516,14 @@ function justifySeries(damageChart) {
   }
 }
 
-function setChartData(suffix, chartData) {
+function setChartData(suffix, chartData, colorId) {
   // TODO: Don't display empty chart data.
 
   var damageChart = $("#chart").highcharts();
   var damage = damageChart.get("damage-" + suffix);
   var surge = damageChart.get("surge-" + suffix);
   if (!damage) {
-    var color = CHART_COLORS[suffix];
+    var color = CHART_COLORS[colorId];
     damage = damageChart.addSeries({
       id: "damage-" + suffix,
       name: "Damage",
@@ -536,7 +543,7 @@ function setChartData(suffix, chartData) {
     surge = damageChart.addSeries({
       id: "surge-" + suffix,
       name: "Surge",
-      color: CHART_COLORS[suffix],
+      color: CHART_COLORS[colorId],
       dashStyle: "LongDash",
       lineWidth: 1,
       fillOpacity:.01,
@@ -559,13 +566,13 @@ function setChartData(suffix, chartData) {
   damageChart.redraw();
 }
 
-function setCombinedChartData(suffix, chartData) {
+function setCombinedChartData(suffix, chartData, colorId) {
   // TODO: Don't display empty chart data.
 
   var damageChart = $("#chart").highcharts();
   var damage = damageChart.get("damage-" + suffix);
   if (!damage) {
-    var color = CHART_COLORS[suffix];
+    var color = CHART_COLORS[colorId];
     damage = damageChart.addSeries({
       id: "damage-" + suffix,
       name: "Damage",
@@ -637,7 +644,7 @@ function getCurrentChartData() {
 }
 
 function updateProbabilities() {
-  setChartData("current", getCurrentChartData());
+  setChartData("current", getCurrentChartData(), "current");
 }
 
 function getDistance() {

@@ -311,7 +311,6 @@ function adjustPinnedAreaSize() {
  * Initializes the pin button.
  */
 function setupPin() {
-  // TODO: Include range in pinned (visuals)
   // TODO: Include re-rolls in pinned
   // TODO: Add clear functionality to remove individual/all pins.
   $("#pin")

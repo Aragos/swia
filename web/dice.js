@@ -39,7 +39,7 @@ function setupElementTrash() {
           var draggable = dragged.draggable;
           if (draggable.hasClass("target-element")) {
             draggable.remove();
-            updateTargetPlaceholder();
+            updateTargetPlaceholderAndPin();
             updateProbabilitiesAsync();
           } else if (draggable.hasClass("surge-element")) {
             if (draggable.hasClass("damage-modifier")) {
@@ -49,6 +49,7 @@ function setupElementTrash() {
             } else if (draggable.hasClass("accuracy-modifier")) {
               decreaseCount("#surge-accuracy-count");
             }
+            updateSurgeSourceDraggableState();
           }
         }
       });
@@ -84,7 +85,7 @@ function setupTarget() {
                   })
                   .appendTo(droppable);
 
-              updateTargetPlaceholder();
+              updateTargetPlaceholderAndPin();
               updateProbabilitiesAsync();
             });
           }
@@ -121,6 +122,7 @@ function setupSurgeSource() {
           } else if (draggable.hasClass("accuracy-modifier")) {
             increaseCount("#surge-accuracy-count");
           }
+          updateSurgeSourceDraggableState();
         }
       });
 
@@ -135,13 +137,13 @@ function setupSurgeSource() {
 }
 
 function makeSurgeDraggable() {
-  // TODO: Only allow dragging (and drag cursor) when there are non-zero values on surge.
   $("#surge-source")
       .draggable({
         appendTo: "body",
         revert: "invalid", // jump back if not dropped on droppable
         revertDuration: 200,
         helper: "clone",
+        disabled: true, // starts disabled since it's empty
         start: function(event, dragged) {
           // Attach a promise to dragged that computes the compiled surge while the element is being
           // dragged. Because it is a promise it doesn't have to be completed by the time the surge
@@ -155,6 +157,16 @@ function makeSurgeDraggable() {
           });
         }
       });
+}
+
+function updateSurgeSourceDraggableState() {
+  var surgeValue = parseInt($("#surge-damage-count").text()) +
+      parseInt($("#surge-pierce-count").text()) + parseInt($("#surge-accuracy-count").text());
+  if (surgeValue > 0) {
+    $("#surge-source").draggable("enable").css("cursor", "alias");
+  } else {
+    $("#surge-source").draggable("disable").css("cursor", "default");
+  }
 }
 
 /**
@@ -181,16 +193,19 @@ function resetSurgeSource() {
   $("#surge-damage-count").text("0");
   $("#surge-pierce-count").text("0");
   $("#surge-accuracy-count").text("0");
+  updateSurgeSourceDraggableState();
 }
 
 /**
  * Updates the placeholder in the target area to show only if there are no elements in it.
  */
-function updateTargetPlaceholder() {
+function updateTargetPlaceholderAndPin() {
   if ($("#target").find(".element").length == 0) {
     $("#target-placeholder").show();
+    $("#pin").addClass("disabled");
   } else {
     $("#target-placeholder").hide();
+    $("#pin").removeClass("disabled");
   }
 }
 
@@ -260,7 +275,7 @@ function setupChart() {
 
 var pinIdsInUse = [];
 function getFreePinId() {
-  for (var i = 0; i < 15; ++i) {
+  for (var i = 0; i < 14; ++i) {
     if (pinIdsInUse.indexOf(i) == -1) {
       pinIdsInUse.push(i);
       return i;
@@ -276,49 +291,56 @@ function setupClear() {
   $("#clear")
       .click(function() {
         $("#target").find(".target-element").remove();
-        updateTargetPlaceholder();
+        updateTargetPlaceholderAndPin();
         updateProbabilitiesAsync();
       });
 }
 
 var pinnedDamageData = [];
 
+function adjustPinnedAreaSize() {
+  var pinnedArea = $("#pinned-area");
+  if (pinnedArea.find(".pinned").length > 4) {
+    pinnedArea.css("height", "73px"); // normal height + 15px for horizontal scroll bar
+  } else {
+    pinnedArea.css("height", "58px"); // normal height
+  }
+}
+
 /**
  * Initializes the pin button.
  */
 function setupPin() {
-  // TODO: Include range in pinned (visuals)
   // TODO: Include re-rolls in pinned
   // TODO: Add clear functionality to remove individual/all pins.
   $("#pin")
       .click(function() {
-        // TODO: Don't pin empty area
         // TODO: Don't pin already-pinned configuration
-        var pinned = $("<div class='pinned'></div>");
-        $("#target")
-            .find(".element")
-            .each(function(_, element) {
-              var pinnedElement = $("<div class='pinned-element'></div>");
-              $.each($(element).attr('class').split(/\s+/), function(_, clazz) {
-                if (clazz != "element") {
-                  pinnedElement.addClass(clazz);
-                }
-              });
-              $(element).find('.element-icon').each(function(_, img) {
-                pinnedElement.append($(img).clone());
-              });
-              // TODO: Copy surge contents, text
-              pinnedElement.appendTo(pinned);
-            });
+        var targetElements = $("#target").find(".element");
+
+        if (targetElements.length == 0) {
+          return;
+        }
 
         var pinnedArea = $("#pinned-area");
+
+        var pinned = $("<div class='pinned'></div>");
+        targetElements
+            .each(function(_, element) {
+              $(element).clone().removeClass("element").addClass("pinned-element").appendTo(pinned);
+            });
+        if (getDistance() > 0) {
+          $("<div class='pinned-range'>" + getDistance() +"</div>")
+              // "relative" positioning is relative to the location of the element, not the parent.
+              // So here we account for where the element would be, depending on the number of other
+              // elements in the pinned item and then move it to the bottom right.
+              .css("top", (37 - Math.floor(targetElements.length / 4) * 11) + "px")
+              .css("left", (36 - (targetElements.length % 4) * 11) + "px")
+              .appendTo(pinned);
+        }
         pinned.appendTo(pinnedArea);
 
-        if (pinnedArea.find(".pinned").length > 4) {
-          pinnedArea.css("height", "73px"); // normal height + 15px for horizontal scroll bar
-        } else {
-          pinnedArea.css("height", "58px"); // normal height
-        }
+        adjustPinnedAreaSize();
 
         pinned.draggable({
           appendTo: "body",
@@ -352,7 +374,7 @@ function setupPin() {
           var draggable = dragged.draggable;
           draggable.remove();
           updateCombined();
-          updateCombinedPlaceholder();
+          updateCombinedPlaceholderAndState();
         }
       });
 }
@@ -373,8 +395,8 @@ function setupCombineTarget() {
   $("#combine-area")
       .droppable({
         accept: function(element) {
-          // TODO: prevent dropping more than 5 items
-          return element.hasClass("pinned") && !element.hasClass("combined");
+          return element.hasClass("pinned") && !element.hasClass("combined") &&
+              $(this).find(".combined").length < 5;
         },
         drop: function(event, dragged) {
           var draggable = dragged.draggable;
@@ -392,7 +414,7 @@ function setupCombineTarget() {
               .appendTo(this);
 
           updateCombined();
-          updateCombinedPlaceholder();
+          updateCombinedPlaceholderAndState();
         }
       });
 }
@@ -421,7 +443,7 @@ function updateCombined() {
   setCombinedChartData("combined", chartData);
 }
 
-function updateCombinedPlaceholder() {
+function updateCombinedPlaceholderAndState() {
   var combinedArea = $("#combine-area");
   if (combinedArea.find(".combined").length == 0) {
     $("#combined-placeholder").show();

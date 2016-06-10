@@ -112,7 +112,7 @@ h1 {
   height: 49px; /* 2 * surge element top margin + 1 * surge element height + 2 * surge element border */
   line-height: 49px; /* == height to center line vertically */
   font-weight: bold;
-  cursor: alias;
+  /*cursor: alias;*/
 }
 
 #surge-label {
@@ -324,6 +324,11 @@ h1 {
   line-height: 45px; /* == height to center line vertically */
 }
 
+#pin.disabled {
+  background-color: #a77347;
+  color: #444;
+}
+
 #pinned-area {
   overflow-x: auto;
   white-space: nowrap;
@@ -360,6 +365,59 @@ h1 {
   margin: 2px;
 }
 
+.pinned-element .compiled-surge-item, .pinned-element .compiled-surge-label {
+  width: 5px;
+  height: 5px;
+  float: left;
+  line-height: 5px;
+  font-size: 4pt;
+}
+
+.pinned-element .compiled-surge-item img {
+  width: 2px;
+  height: 2px;
+  margin: 1px 0 1px 0;
+}
+
+.pinned-element .single-surge .compiled-surge-cost1 {
+  width: 4px;
+  height: 4px;
+  margin: 0;
+}
+
+.pinned-element .double-surge .compiled-surge-cost1 {
+  width: 4px;
+  height: 2px;
+  margin: 1px 0 0 0;
+}
+
+.pinned-element .compiled-surge-cost2 {
+  width: 4px;
+  height: 2px;
+  margin: 0;
+}
+
+.pinned-element .compiled-surge-label {
+  margin: 0;
+  height: 5px;
+  width: 5px;
+  border-radius: 2px 0 1px 0;
+}
+
+.pinned-range {
+  font-size: 8pt;
+  font-weight: bold;
+  background-color: #fff;
+  height: 12px;
+  width: 12px;
+  position: relative;
+  line-height: 12px;
+  margin: 0;
+  float: left;
+  display: inline-block;
+  border-radius: 1px;
+}
+
 .pinned-active {
   box-shadow: 0 0 5px black;
 }
@@ -392,4 +450,8 @@ h1 {
 
 #credits a {
   color: #666;
+}
+
+#credits div {
+  margin: 0 0 5px 0;
 }

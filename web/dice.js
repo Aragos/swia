@@ -298,6 +298,15 @@ function setupClear() {
 
 var pinnedDamageData = [];
 
+function adjustPinnedAreaSize() {
+  var pinnedArea = $("#pinned-area");
+  if (pinnedArea.find(".pinned").length > 4) {
+    pinnedArea.css("height", "73px"); // normal height + 15px for horizontal scroll bar
+  } else {
+    pinnedArea.css("height", "58px"); // normal height
+  }
+}
+
 /**
  * Initializes the pin button.
  */
@@ -314,30 +323,16 @@ function setupPin() {
           return;
         }
 
+        var pinnedArea = $("#pinned-area");
+
         var pinned = $("<div class='pinned'></div>");
         targetElements
             .each(function(_, element) {
-              var pinnedElement = $("<div class='pinned-element'></div>");
-              $.each($(element).attr('class').split(/\s+/), function(_, clazz) {
-                if (clazz != "element") {
-                  pinnedElement.addClass(clazz);
-                }
-              });
-              $(element).find('.element-icon').each(function(_, img) {
-                pinnedElement.append($(img).clone());
-              });
-              // TODO: Copy surge contents, text
-              pinnedElement.appendTo(pinned);
+              $(element).clone().removeClass("element").addClass("pinned-element").appendTo(pinned);
             });
-
-        var pinnedArea = $("#pinned-area");
         pinned.appendTo(pinnedArea);
 
-        if (pinnedArea.find(".pinned").length > 4) {
-          pinnedArea.css("height", "73px"); // normal height + 15px for horizontal scroll bar
-        } else {
-          pinnedArea.css("height", "58px"); // normal height
-        }
+        adjustPinnedAreaSize();
 
         pinned.draggable({
           appendTo: "body",

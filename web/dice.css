@@ -365,6 +365,45 @@ h1 {
   margin: 2px;
 }
 
+.pinned-element .compiled-surge-item, .pinned-element .compiled-surge-label {
+  width: 5px;
+  height: 5px;
+  float: left;
+  line-height: 5px;
+  font-size: 4pt;
+}
+
+.pinned-element .compiled-surge-item img {
+  width: 2px;
+  height: 2px;
+  margin: 1px 0 1px 0;
+}
+
+.pinned-element .single-surge .compiled-surge-cost1 {
+  width: 4px;
+  height: 4px;
+  margin: 0;
+}
+
+.pinned-element .double-surge .compiled-surge-cost1 {
+  width: 4px;
+  height: 2px;
+  margin: 1px 0 0 0;
+}
+
+.pinned-element .compiled-surge-cost2 {
+  width: 4px;
+  height: 2px;
+  margin: 0;
+}
+
+.pinned-element .compiled-surge-label {
+  margin: 0;
+  height: 5px;
+  width: 5px;
+  border-radius: 2px 0 1px 0;
+}
+
 .pinned-active {
   box-shadow: 0 0 5px black;
 }

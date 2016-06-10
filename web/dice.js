@@ -49,6 +49,7 @@ function setupElementTrash() {
             } else if (draggable.hasClass("accuracy-modifier")) {
               decreaseCount("#surge-accuracy-count");
             }
+            updateSurgeSourceDraggableState();
           }
         }
       });
@@ -121,6 +122,7 @@ function setupSurgeSource() {
           } else if (draggable.hasClass("accuracy-modifier")) {
             increaseCount("#surge-accuracy-count");
           }
+          updateSurgeSourceDraggableState();
         }
       });
 
@@ -135,13 +137,13 @@ function setupSurgeSource() {
 }
 
 function makeSurgeDraggable() {
-  // TODO: Only allow dragging (and drag cursor) when there are non-zero values on surge.
   $("#surge-source")
       .draggable({
         appendTo: "body",
         revert: "invalid", // jump back if not dropped on droppable
         revertDuration: 200,
         helper: "clone",
+        disabled: true, // starts disabled since it's empty
         start: function(event, dragged) {
           // Attach a promise to dragged that computes the compiled surge while the element is being
           // dragged. Because it is a promise it doesn't have to be completed by the time the surge
@@ -155,6 +157,16 @@ function makeSurgeDraggable() {
           });
         }
       });
+}
+
+function updateSurgeSourceDraggableState() {
+  var surgeValue = parseInt($("#surge-damage-count").text()) +
+      parseInt($("#surge-pierce-count").text()) + parseInt($("#surge-accuracy-count").text());
+  if (surgeValue > 0) {
+    $("#surge-source").draggable("enable").css("cursor", "alias");
+  } else {
+    $("#surge-source").draggable("disable").css("cursor", "default");
+  }
 }
 
 /**
@@ -181,6 +193,7 @@ function resetSurgeSource() {
   $("#surge-damage-count").text("0");
   $("#surge-pierce-count").text("0");
   $("#surge-accuracy-count").text("0");
+  updateSurgeSourceDraggableState();
 }
 
 /**

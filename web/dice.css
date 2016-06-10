@@ -112,7 +112,7 @@ h1 {
   height: 49px; /* 2 * surge element top margin + 1 * surge element height + 2 * surge element border */
   line-height: 49px; /* == height to center line vertically */
   font-weight: bold;
-  cursor: alias;
+  /*cursor: alias;*/
 }
 
 #surge-label {

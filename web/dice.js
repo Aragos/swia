@@ -330,6 +330,15 @@ function setupPin() {
             .each(function(_, element) {
               $(element).clone().removeClass("element").addClass("pinned-element").appendTo(pinned);
             });
+        if (getDistance() > 0) {
+          $("<div class='pinned-range'>" + getDistance() +"</div>")
+              // "relative" positioning is relative to the location of the element, not the parent.
+              // So here we account for where the element would be, depending on the number of other
+              // elements in the pinned item and then move it to the bottom right.
+              .css("top", (37 - Math.floor(targetElements.length / 4) * 11) + "px")
+              .css("left", (36 - (targetElements.length % 4) * 11) + "px")
+              .appendTo(pinned);
+        }
         pinned.appendTo(pinnedArea);
 
         adjustPinnedAreaSize();

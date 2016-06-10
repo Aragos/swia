@@ -105,8 +105,8 @@
   </div>
 
   <div class="whole-width">
-    <div id="combine">
-      Combine
+    <div id="combine-area">
+      <span id="combined-placeholder">Drop pins here</span>
     </div>
   </div>
 
@@ -136,12 +136,10 @@
   </div>
 
   <script>
-    var pinnedDataMap = {};
     setupDrops();
     setupRanged();
     setupChart();
-    setupPin(pinnedDataMap);
-    setupCombine(pinnedDataMap);
+    setupPin();
     setupClear();
   </script>
 </body>

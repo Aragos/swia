@@ -296,19 +296,6 @@ h1 {
   background-color: #eee;
 }
 
-/* Combining */
-#combine {
-  background-color: #fdae6b;
-  margin: 5px 0 10px 5px;
-  border: 1px solid #555;
-  cursor: default;
-  width: 70px;
-  height: 45px;
-  border-radius: 8px;
-  text-align: center;
-  line-height: 45px; /* == height to center line vertically */
-}
-
 /* Clearing */
 #clear {
   background-color: #fdae6b;
@@ -326,7 +313,7 @@ h1 {
 /* Pinning */
 #pin {
   background-color: #fdae6b;
-  margin: 5px 0 0 5px;
+  margin: 6px 0 0 5px; /* margin top == margin top for .pinned plus border difference */
   border: 1px solid #555;
   cursor: default;
   width: 45px;
@@ -340,7 +327,7 @@ h1 {
 #pinned-area {
   overflow-x: auto;
   white-space: nowrap;
-  height: 77px; /* 1 * top element margin + element height + 2 * element border + 25 for scroll bar */
+  height: 58px; /* 1 * top element margin + element height + 2 * element border + 2 * element shadow */
   width: 260px; /* 5 * element width + 5 * element left margin + 10 * element border */
 }
 
@@ -354,6 +341,7 @@ h1 {
   text-align: center;
   line-height: 45px; /* == height to center line vertically */
   display: inline-block;
+  cursor: alias;
 }
 
 .pinned-element {
@@ -378,11 +366,28 @@ h1 {
 
 .pinned-inactive {}
 
+/* Combining */
+#combine-area {
+  height: 59px; /* 2 * top element margin + element height + 2 * element border */
+  background: #eee;
+  border-radius: 5px;
+  border: 0 solid #a55194;
+  text-align: center;
+  line-height: 59px; /* == height to vertically center text */
+  margin: 1px 5px 0 5px;
+}
+
+.combined {
+  float: left;
+  margin-left: 6px; 
+}
+
 
 #credits {
   font-size: 8pt;
   color: #888;
   text-align: center;
+  margin-top: 10px;
 }
 
 #credits a {

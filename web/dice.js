@@ -563,11 +563,19 @@ function setupChart() {
 }
 
 function setChartData(suffix, chartData, colorId) {
-  // TODO: Don't display empty chart data.
-
   var damageChart = $("#chart").highcharts();
   var damage = damageChart.get("damage-" + suffix);
   var surge = damageChart.get("surge-" + suffix);
+
+  // This series has zero damage starting with x == 1, don't display it.
+  if (!(1 in chartData.damageData)) {
+    if (damage) {
+      damage.remove();
+      surge.remove();
+    }
+    return;
+  }
+
   if (!damage) {
     var color = CHART_COLORS[colorId];
     damage = damageChart.addSeries({
@@ -607,10 +615,17 @@ function setChartData(suffix, chartData, colorId) {
 }
 
 function setCombinedChartData(suffix, chartData, colorId) {
-  // TODO: Don't display empty chart data.
-
   var damageChart = $("#chart").highcharts();
   var damage = damageChart.get("damage-" + suffix);
+
+  // This series has zero damage starting with x == 1, don't display it.
+  if (!(1 in chartData.damageData)) {
+    if (damage) {
+      damage.remove();
+    }
+    return;
+  }
+
   if (!damage) {
     var color = CHART_COLORS[colorId];
     damage = damageChart.addSeries({

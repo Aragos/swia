@@ -223,56 +223,6 @@ function setupRanged() {
       });
 }
 
-function setupChart() {
-  $('#chart').highcharts({
-    credits: false,
-    chart: {
-      borderRadius: 5,
-      spacing: [8, 2, 2, 2],
-      type: "areaspline",
-      animation: false,
-    },
-    title: {
-      text: null,
-    },
-    yAxis: {
-      title: {
-        text: null,
-      },
-      labels: {
-        x: -2,
-      },
-      max: 100,
-      tickInterval: 10,
-    },
-    xAxis: {
-      allowDecimals: false,
-      tickInterval: 1,
-      min: 1,
-    },
-    tooltip: {
-      valueSuffix: '%',
-      shared: true,
-      // TODO: Implement more complex formatting function with colors and sorting by value
-    },
-    legend: {
-      enabled: false,
-    },
-    loading: {
-      labelStyle: {
-        fontWeight: "bold",
-        position: "relative",
-        top: "0",
-      },
-      style: {
-        textAlign: "right",
-        opacity: .5,
-        backgroundColor: "transparent",
-      }
-    }
-  });
-}
-
 var nextPinId = 0;
 var colorsInUse = [];
 
@@ -516,6 +466,102 @@ function justifySeries(damageChart) {
   }
 }
 
+/**
+ * Returns a string with a list of divs, one for each pin in {@code this.points}.
+ *
+ * <p>A pin is commonly represented by two series of the same color, damage and surge, but may have
+ * only the former. Divs are sorted by damage and then extra surge probability for that pin and
+ * match its color.
+ */
+function tooltipFormatter() {
+  var pinMap = {};
+  var pinList = [];
+  $.each(this.points, function() {
+    var type = this.series.name.toLowerCase();
+    var pinId = this.color;
+    if (!(pinId in pinMap)) {
+      pinMap[pinId] = {};
+      pinList.push(pinMap[pinId]);
+    }
+    pinMap[pinId][type] = this.y;
+    pinMap[pinId]["color"] = this.color;
+  });
+
+  pinList.sort(function(a, b) {
+    function mapGet(map, key, defaultValue) {
+      return key in map ? map[key] : defaultValue;
+    }
+    var damageDifference = b["damage"] - a["damage"];
+    if (damageDifference == 0) {
+      return mapGet(b, "surge", 0) - mapGet(a, "surge", 0);
+    }
+    return damageDifference;
+  });
+
+  var s = '';
+
+  $.each(pinList, function(_, point) {
+    s += '<div style="color:' + point["color"] + '">';
+    s += '<img src="icons/damage.svg" class="tooltip-damage">' + point["damage"] + '% ';
+    if ("surge" in point) {
+      s += '<img src="icons/surge.svg" class="tooltip-surge">' + point["surge"] + '%';
+    }
+    s += '</div>';
+  });
+
+  return s;
+}
+
+function setupChart() {
+  $('#chart').highcharts({
+    credits: false,
+    chart: {
+      borderRadius: 5,
+      spacing: [8, 2, 2, 2],
+      type: "areaspline",
+      animation: false,
+    },
+    title: {
+      text: null,
+    },
+    yAxis: {
+      title: {
+        text: null,
+      },
+      labels: {
+        x: -2,
+      },
+      max: 100,
+      tickInterval: 10,
+    },
+    xAxis: {
+      allowDecimals: false,
+      tickInterval: 1,
+      min: 1,
+    },
+    tooltip: {
+      shared: true,
+      formatter: tooltipFormatter,
+      useHTML: true,
+    },
+    legend: {
+      enabled: false,
+    },
+    loading: {
+      labelStyle: {
+        fontWeight: "bold",
+        position: "relative",
+        top: "0",
+      },
+      style: {
+        textAlign: "right",
+        opacity: .5,
+        backgroundColor: "transparent",
+      }
+    }
+  });
+}
+
 function setChartData(suffix, chartData, colorId) {
   // TODO: Don't display empty chart data.
 
@@ -536,9 +582,6 @@ function setChartData(suffix, chartData, colorId) {
         radius: 3,
       },
       animation: false,
-      tooltip: {
-        pointFormat: "<b>{series.name}: {point.y}</b><br/>"
-      },
     }, false);
     surge = damageChart.addSeries({
       id: "surge-" + suffix,
@@ -552,9 +595,6 @@ function setChartData(suffix, chartData, colorId) {
         radius: 3,
       },
       animation: false,
-      tooltip: {
-        pointFormat: "{series.name}: {point.y}<br/>"
-      },
     }, false);
   }
 

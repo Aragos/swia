@@ -273,7 +273,6 @@ function setupPin() {
   // TODO: Add clear functionality to remove individual/all pins.
   $("#pin")
       .click(function() {
-        // TODO: Don't pin already-pinned configuration
         var targetElements = $("#target").find(".element");
 
         if (targetElements.length == 0 || colorsInUse.length == 14) {

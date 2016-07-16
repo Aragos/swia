@@ -223,65 +223,23 @@ function setupRanged() {
       });
 }
 
-function setupChart() {
-  $('#chart').highcharts({
-    credits: false,
-    chart: {
-      borderRadius: 5,
-      spacing: [8, 2, 2, 2],
-      type: "areaspline",
-      animation: false,
-    },
-    title: {
-      text: null,
-    },
-    yAxis: {
-      title: {
-        text: null,
-      },
-      labels: {
-        x: -2,
-      },
-      max: 100,
-      tickInterval: 10,
-    },
-    xAxis: {
-      allowDecimals: false,
-      tickInterval: 1,
-      min: 1,
-    },
-    tooltip: {
-      valueSuffix: '%',
-      shared: true,
-      // TODO: Implement more complex formatting function with colors and sorting by value
-    },
-    legend: {
-      enabled: false,
-    },
-    loading: {
-      labelStyle: {
-        fontWeight: "bold",
-        position: "relative",
-        top: "0",
-      },
-      style: {
-        textAlign: "right",
-        opacity: .5,
-        backgroundColor: "transparent",
-      }
-    }
-  });
-}
+var nextPinId = 0;
+var colorsInUse = [];
 
-var pinIdsInUse = [];
-function getFreePinId() {
+/**
+ * Returns a previously unused color and allocates it as used.
+ */
+function allocateColor() {
   for (var i = 0; i < 14; ++i) {
-    if (pinIdsInUse.indexOf(i) == -1) {
-      pinIdsInUse.push(i);
+    if (!(i in colorsInUse)) {
+      colorsInUse.push(i);
+      if (colorsInUse.length == 14) {
+        $("#pin").addClass("disabled");
+      }
       return i;
     }
   }
-  throw "No more pin IDs"; // TODO: Disable Pin button before this becomes necessary.
+  throw "No more available colors";
 }
 
 /**
@@ -315,10 +273,9 @@ function setupPin() {
   // TODO: Add clear functionality to remove individual/all pins.
   $("#pin")
       .click(function() {
-        // TODO: Don't pin already-pinned configuration
         var targetElements = $("#target").find(".element");
 
-        if (targetElements.length == 0) {
+        if (targetElements.length == 0 || colorsInUse.length == 14) {
           return;
         }
 
@@ -349,17 +306,16 @@ function setupPin() {
           revertDuration: 200
         });
 
-        // TODO: A lot of logic relies on the pinId being unique. Figure out what to do if you can
-        // remove pins.
-        var pinId = getFreePinId();
-        pinned.css("border-color", CHART_COLORS[pinId]);
+        var pinId = nextPinId++;
+        var colorId = allocateColor();
+        pinned.css("border-color", CHART_COLORS[colorId]);
         pinned.addClass("pin-" + pinId);
         var damageData = getCurrentDamage();
         pinnedDamageData[pinId] = damageData;
 
         var chartData = damageToChartData(damageData);
         var toggle = function() {
-          togglePinned(pinId, pinned, chartData);
+          togglePinned(pinId, pinned, chartData, colorId);
         };
         pinned.click(toggle);
         toggle();
@@ -379,13 +335,13 @@ function setupPin() {
       });
 }
 
-function togglePinned(pinId, pinned, chartData) {
+function togglePinned(pinId, pinned, chartData, colorId) {
   if (pinned.hasClass("pinned-active")) {
     removeChart(pinId);
     pinned.addClass("pinned-inactive");
     pinned.removeClass("pinned-active");
   } else {
-    setChartData(pinId, chartData);
+    setChartData(pinId, chartData, colorId);
     pinned.addClass("pinned-active");
     pinned.removeClass("pinned-inactive");
   }
@@ -440,7 +396,7 @@ function updateCombined() {
   });
   var combinedDamage = combineCdfs(selectedDamages);
   var chartData =  damageToChartData(combinedDamage);
-  setCombinedChartData("combined", chartData);
+  setCombinedChartData("combined", chartData, "combined");
 }
 
 function updateCombinedPlaceholderAndState() {
@@ -509,14 +465,118 @@ function justifySeries(damageChart) {
   }
 }
 
-function setChartData(suffix, chartData) {
-  // TODO: Don't display empty chart data.
+/**
+ * Returns a string with a list of divs, one for each pin in {@code this.points}.
+ *
+ * <p>A pin is commonly represented by two series of the same color, damage and surge, but may have
+ * only the former. Divs are sorted by damage and then extra surge probability for that pin and
+ * match its color.
+ */
+function tooltipFormatter() {
+  var pinMap = {};
+  var pinList = [];
+  $.each(this.points, function() {
+    var type = this.series.name.toLowerCase();
+    var pinId = this.color;
+    if (!(pinId in pinMap)) {
+      pinMap[pinId] = {};
+      pinList.push(pinMap[pinId]);
+    }
+    pinMap[pinId][type] = this.y;
+    pinMap[pinId]["color"] = this.color;
+  });
 
+  pinList.sort(function(a, b) {
+    function mapGet(map, key, defaultValue) {
+      return key in map ? map[key] : defaultValue;
+    }
+    var damageDifference = b["damage"] - a["damage"];
+    if (damageDifference == 0) {
+      return mapGet(b, "surge", 0) - mapGet(a, "surge", 0);
+    }
+    return damageDifference;
+  });
+
+  var s = '';
+
+  $.each(pinList, function(_, point) {
+    s += '<div style="color:' + point["color"] + '">';
+    s += '<img src="icons/damage.svg" class="tooltip-damage">' + point["damage"] + '% ';
+    if ("surge" in point) {
+      s += '<img src="icons/surge.svg" class="tooltip-surge">' + point["surge"] + '%';
+    }
+    s += '</div>';
+  });
+
+  return s;
+}
+
+function setupChart() {
+  $('#chart').highcharts({
+    credits: false,
+    chart: {
+      borderRadius: 5,
+      spacing: [8, 2, 2, 2],
+      type: "areaspline",
+      animation: false,
+    },
+    title: {
+      text: null,
+    },
+    yAxis: {
+      title: {
+        text: null,
+      },
+      labels: {
+        x: -2,
+      },
+      max: 100,
+      tickInterval: 10,
+    },
+    xAxis: {
+      allowDecimals: false,
+      tickInterval: 1,
+      min: 1,
+    },
+    tooltip: {
+      shared: true,
+      formatter: tooltipFormatter,
+      useHTML: true,
+    },
+    legend: {
+      enabled: false,
+    },
+    loading: {
+      labelStyle: {
+        fontWeight: "bold",
+        position: "relative",
+        top: "0",
+      },
+      style: {
+        textAlign: "right",
+        opacity: .5,
+        backgroundColor: "transparent",
+      }
+    }
+  });
+}
+
+function setChartData(suffix, chartData, colorId) {
   var damageChart = $("#chart").highcharts();
   var damage = damageChart.get("damage-" + suffix);
   var surge = damageChart.get("surge-" + suffix);
+
+  // This series has zero damage starting with x == 1, don't display it.
+  if (!(1 in chartData.damageData)) {
+    if (damage) {
+      damage.remove();
+      surge.remove();
+    }
+    return;
+  }
+
   if (!damage) {
-    var color = CHART_COLORS[suffix];
+    var color = CHART_COLORS[colorId];
     damage = damageChart.addSeries({
       id: "damage-" + suffix,
       name: "Damage",
@@ -529,14 +589,11 @@ function setChartData(suffix, chartData) {
         radius: 3,
       },
       animation: false,
-      tooltip: {
-        pointFormat: "<b>{series.name}: {point.y}</b><br/>"
-      },
     }, false);
     surge = damageChart.addSeries({
       id: "surge-" + suffix,
       name: "Surge",
-      color: CHART_COLORS[suffix],
+      color: CHART_COLORS[colorId],
       dashStyle: "LongDash",
       lineWidth: 1,
       fillOpacity:.01,
@@ -545,9 +602,6 @@ function setChartData(suffix, chartData) {
         radius: 3,
       },
       animation: false,
-      tooltip: {
-        pointFormat: "{series.name}: {point.y}<br/>"
-      },
     }, false);
   }
 
@@ -559,13 +613,20 @@ function setChartData(suffix, chartData) {
   damageChart.redraw();
 }
 
-function setCombinedChartData(suffix, chartData) {
-  // TODO: Don't display empty chart data.
-
+function setCombinedChartData(suffix, chartData, colorId) {
   var damageChart = $("#chart").highcharts();
   var damage = damageChart.get("damage-" + suffix);
+
+  // This series has zero damage starting with x == 1, don't display it.
+  if (!(1 in chartData.damageData)) {
+    if (damage) {
+      damage.remove();
+    }
+    return;
+  }
+
   if (!damage) {
-    var color = CHART_COLORS[suffix];
+    var color = CHART_COLORS[colorId];
     damage = damageChart.addSeries({
       id: "damage-" + suffix,
       name: "Damage",
@@ -637,7 +698,7 @@ function getCurrentChartData() {
 }
 
 function updateProbabilities() {
-  setChartData("current", getCurrentChartData());
+  setChartData("current", getCurrentChartData(), "current");
 }
 
 function getDistance() {

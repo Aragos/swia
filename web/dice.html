@@ -11,7 +11,7 @@
   <script src="jquery-ui.js"></script>
   <script src="dice.js"></script>
   <script src="jquery.ui.touch-punch.js"></script>
-  <script src="highcharts.js"></script>
+  <script src="highcharts-custom.js"></script>
 
   <h1>SW: IA Dice Calculator</h1>
 
@@ -96,7 +96,7 @@
   </div>
 
   <div class="whole-width">
-    <div id="pin">
+    <div id="pin" class="disabled">
       Pin
     </div>
     <div id="pinned-area">
@@ -105,17 +105,22 @@
   </div>
 
   <div class="whole-width">
-    <div id="combine">
-      Combine
+    <div id="combine-area">
+      <span id="combined-placeholder">Drop pins here</span>
     </div>
   </div>
 
   <div id="credits" class="whole-width">
-    Powered by:
-    <a href="jquery.com" target="_blank">jQuery</a> |
-    <a href="jqueryui.com" target="_blank">jQuery UI</a> |
-    <a href="highcharts.com" target="_blank">highcharts</a> |
-    icons by <a href="https://boardgamegeek.com/filepage/112225/icon-pack" target="_blank">lugiber</a>
+    <div>
+      Powered by:
+      <a href="http://jquery.com" target="_blank">jQuery</a> |
+      <a href="http://jqueryui.com" target="_blank">jQuery UI</a> |
+      <a href="http://highcharts.com" target="_blank">highcharts</a> |
+      icons by <a href="https://boardgamegeek.com/filepage/112225/icon-pack" target="_blank">lugiber</a>
+    </div>
+    <div>
+      Developed and hosted on <a href="http://aragos.github.com/swia">github</a>
+    </div>
   </div>
 
   <!-- Hidden surge template -->
@@ -136,12 +141,10 @@
   </div>
 
   <script>
-    var pinnedDataMap = {};
     setupDrops();
     setupRanged();
     setupChart();
-    setupPin(pinnedDataMap);
-    setupCombine(pinnedDataMap);
+    setupPin();
     setupClear();
   </script>
 </body>

@@ -112,7 +112,7 @@ h1 {
   height: 49px; /* 2 * surge element top margin + 1 * surge element height + 2 * surge element border */
   line-height: 49px; /* == height to center line vertically */
   font-weight: bold;
-  cursor: alias;
+  /*cursor: alias;*/
 }
 
 #surge-label {
@@ -296,17 +296,17 @@ h1 {
   background-color: #eee;
 }
 
-/* Combining */
-#combine {
-  background-color: #fdae6b;
-  margin: 5px 0 10px 5px;
-  border: 1px solid #555;
-  cursor: default;
-  width: 70px;
-  height: 45px;
-  border-radius: 8px;
-  text-align: center;
-  line-height: 45px; /* == height to center line vertically */
+.tooltip-damage, .tooltip-surge {
+  width: 10px;
+  height: 11px;
+}
+
+.tooltip-damage {
+  margin: 0 1px -1px 0;
+}
+
+.tooltip-surge {
+  margin: 0 1px -1px 2px;
 }
 
 /* Clearing */
@@ -326,7 +326,7 @@ h1 {
 /* Pinning */
 #pin {
   background-color: #fdae6b;
-  margin: 5px 0 0 5px;
+  margin: 6px 0 0 5px; /* margin top == margin top for .pinned plus border difference */
   border: 1px solid #555;
   cursor: default;
   width: 45px;
@@ -337,10 +337,15 @@ h1 {
   line-height: 45px; /* == height to center line vertically */
 }
 
+#pin.disabled {
+  background-color: #a77347;
+  color: #444;
+}
+
 #pinned-area {
   overflow-x: auto;
   white-space: nowrap;
-  height: 77px; /* 1 * top element margin + element height + 2 * element border + 25 for scroll bar */
+  height: 58px; /* 1 * top element margin + element height + 2 * element border + 2 * element shadow */
   width: 260px; /* 5 * element width + 5 * element left margin + 10 * element border */
 }
 
@@ -354,6 +359,7 @@ h1 {
   text-align: center;
   line-height: 45px; /* == height to center line vertically */
   display: inline-block;
+  cursor: alias;
 }
 
 .pinned-element {
@@ -372,19 +378,93 @@ h1 {
   margin: 2px;
 }
 
+.pinned-element .compiled-surge-item, .pinned-element .compiled-surge-label {
+  width: 5px;
+  height: 5px;
+  float: left;
+  line-height: 5px;
+  font-size: 4pt;
+}
+
+.pinned-element .compiled-surge-item img {
+  width: 2px;
+  height: 2px;
+  margin: 1px 0 1px 0;
+}
+
+.pinned-element .single-surge .compiled-surge-cost1 {
+  width: 4px;
+  height: 4px;
+  margin: 0;
+}
+
+.pinned-element .double-surge .compiled-surge-cost1 {
+  width: 4px;
+  height: 2px;
+  margin: 1px 0 0 0;
+}
+
+.pinned-element .compiled-surge-cost2 {
+  width: 4px;
+  height: 2px;
+  margin: 0;
+}
+
+.pinned-element .compiled-surge-label {
+  margin: 0;
+  height: 5px;
+  width: 5px;
+  border-radius: 2px 0 1px 0;
+}
+
+.pinned-range {
+  font-size: 8pt;
+  font-weight: bold;
+  background-color: #fff;
+  height: 12px;
+  width: 12px;
+  position: relative;
+  line-height: 12px;
+  margin: 0;
+  float: left;
+  display: inline-block;
+  border-radius: 1px;
+}
+
 .pinned-active {
   box-shadow: 0 0 5px black;
 }
 
 .pinned-inactive {}
 
+/* Combining */
+#combine-area {
+  height: 59px; /* 2 * top element margin + element height + 2 * element border */
+  background: #eee;
+  border-radius: 5px;
+  border: 0 solid #a55194;
+  text-align: center;
+  line-height: 59px; /* == height to vertically center text */
+  margin: 1px 5px 0 5px;
+}
+
+.combined {
+  float: left;
+  margin-left: 6px; 
+}
+
 
 #credits {
   font-size: 8pt;
   color: #888;
   text-align: center;
+  margin-top: 10px;
 }
 
 #credits a {
   color: #666;
+}
+
+#credits div {
+  margin: 0 0 5px 0;
 }

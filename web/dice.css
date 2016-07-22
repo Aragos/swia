@@ -468,3 +468,56 @@ h1 {
 #credits div {
   margin: 0 0 5px 0;
 }
+
+/* Modals */
+.blocker {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  z-index: 1;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.75);
+  text-align: center;
+}
+.blocker:before{
+  content: "";
+  display: inline-block;
+  height: 100%;
+  /*vertical-align: middle;*/
+  vertical-align: top;
+  margin-right: -0.05em;
+}
+.blocker.behind {
+  background-color: transparent;
+}
+
+.modal {
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+  top: 185px;
+}
+
+#target-menu {
+  width: 156px; /* == 2 * button width + 4 * button border + 4 * button margin */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Pinning */
+.menu-button {
+  background-color: #fdae6b;
+  margin: 0 8px 0 8px;
+  border: 1px solid #555;
+  cursor: default;
+  width: 60px;
+  height: 45px;
+  border-radius: 8px;
+  float: left;
+  text-align: center;
+  line-height: 45px; /* == height to center line vertically */
+  font-weight: bold;
+}

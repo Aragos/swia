@@ -12,6 +12,8 @@
   <script src="dice.js"></script>
   <script src="jquery.ui.touch-punch.js"></script>
   <script src="highcharts-custom.js"></script>
+  <script src="jquery.longclick.js"></script>
+  <script src="jquery.modal.js"></script>
 
   <h1>SW: IA Dice Calculator</h1>
 
@@ -138,6 +140,12 @@
     <div class="compiled-surge-item compiled-surge-accuracy">
       <span class="compiled-surge-accuracy-count">0</span><img src="icons/accuracy.svg" alt="Surge Accuracy Modifier"/>
     </div>
+  </div>
+
+  <!-- Hidden target area menu -->
+  <div id="target-menu" style="display: none" class="modal">
+    <div id="clear-target" class="menu-button">Clear</div>
+    <div id="pin-target" class="menu-button">Pin</div>
   </div>
 
   <script>

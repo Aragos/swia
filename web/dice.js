@@ -56,40 +56,57 @@ function setupElementTrash() {
 }
 
 function setupTarget() {
-  $("#target")
-        .droppable({
-          accept: function(element) {
-            return !element.hasClass("target-element") &&
-                (element.hasClass("element") || element.attr("id") == "surge-source");
-          },
-          drop: function(event, dragged) {
-            var droppable = this;
+  var target = $("#target");
 
-            //noinspection JSUnresolvedVariable
-            var newElementPromise = Promise.resolve(dragged.draggable);
-            if (!dragged.draggable.hasClass("element")) { // it's a surge source, but we want the compiled surge
-              newElementPromise = dragged.helper.compiledSurge.then(function(newElement) {
-                resetSurgeSource();
-                return newElement;
-              });
-            }
+  target.droppable({
+      accept: function(element) {
+        return !element.hasClass("target-element") &&
+            (element.hasClass("element") || element.attr("id") == "surge-source");
+      },
+      drop: function(event, dragged) {
+        var droppable = this;
 
-            newElementPromise.then(function(newElement) {
-              newElement
-                  .clone()
-                  .addClass("target-element")
-                  .draggable({
-                    appendTo: "body",
-                    revert: "invalid", // jump back if not dropped on droppable
-                    revertDuration: 200
-                  })
-                  .appendTo(droppable);
+        //noinspection JSUnresolvedVariable
+        var newElementPromise = Promise.resolve(dragged.draggable);
+        if (!dragged.draggable.hasClass("element")) { // it's a surge source, but we want the compiled surge
+          newElementPromise = dragged.helper.compiledSurge.then(function(newElement) {
+            resetSurgeSource();
+            return newElement;
+          });
+        }
 
-              updateTargetPlaceholderAndPin();
-              updateProbabilitiesAsync();
-            });
-          }
+        newElementPromise.then(function(newElement) {
+          newElement
+              .clone()
+              .addClass("target-element")
+              .draggable({
+                appendTo: "body",
+                revert: "invalid", // jump back if not dropped on droppable
+                revertDuration: 200
+              })
+              .appendTo(droppable);
+
+          updateTargetPlaceholderAndPin();
+          updateProbabilitiesAsync();
         });
+      }
+    });
+
+  target.longclick(700, function(eventData) {
+    setTimeout(function() {
+      $("#target-menu").modal({
+        showClose: false,
+      });
+    }, 0);
+
+    eventData.stopImmediatePropagation();
+    eventData.preventDefault(); // Make sure long click doesn't click on modal.
+    return false;
+  });
+
+  // $("#target-menu-close").click(function() {
+  //   $.modal.close();
+  // });
 }
 
 function makeSingleSurgeSource() {

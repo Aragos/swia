@@ -26,7 +26,7 @@ h1 {
 }
 
 #dice-source .element, #attack-modifiers .element, #defense-modifiers .element,
-    .surge-element { /* element styling outside target */
+    .surge-element, #abilities .element { /* element styling outside target */
   border: 1px solid #555;
   cursor: alias;
 }
@@ -79,6 +79,14 @@ h1 {
   border: 1px solid #555;
 }
 
+.ability {
+  background-color: #ccc;
+}
+
+#abilities .element {
+  margin: 2px 0 0 4px;
+}
+
 .modifier {
   background-color: #fff;
 }
@@ -87,6 +95,11 @@ h1 {
   width: 25px;
   height: 25px;
   margin: 10px;
+}
+
+.evade-as-block img, .evade-to-block img {
+  width: 39px;
+  margin: 10px 3px;
 }
 
 /* Surge */
@@ -349,6 +362,11 @@ h1 {
   width: 5px;
   height: 5px;
   margin: 2px;
+}
+
+.pinned-element.evade-as-block img, .pinned-element.evade-to-block img {
+  width: 9px;
+  margin: 2px 0;
 }
 
 .pinned-element .compiled-surge-item, .pinned-element .compiled-surge-label {

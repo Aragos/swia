@@ -5,10 +5,11 @@ function setupDrops() {
   setupSurgeSource();
   makeSurgeDraggable();
   setupCombineTarget();
+  setupAbilities();
 }
 
 function makeElementsDraggable() {
-  $("#dice-source, #attack-modifiers, #defense-modifiers")
+  $("#dice-source, #attack-modifiers, #defense-modifiers, #abilities")
       .find(".element")
           .draggable({
             appendTo: "body",
@@ -32,7 +33,7 @@ function makeElementsDraggable() {
  * source.
  */
 function setupElementTrash() {
-  $("#dice-source, #attack-modifiers, #defense-modifiers")
+  $("#dice-source, #attack-modifiers, #defense-modifiers, #abilities")
       .droppable({
         accept: ".surge-element, .target-element",
         drop: function(event, dragged) {
@@ -204,6 +205,24 @@ function resetSurgeSource() {
   updateSurgeSourceDraggableState();
 }
 
+var abilities = [
+    "evade-as-block",
+    "evade-to-block"
+    ];
+
+function setupAbilities() {
+  $("#abilities").find(".ability").click(function() {
+    var img = $("#abilities").find("img");
+    var element = $("#abilities").find(".ability");
+    var srcLocation = img.prop("src");
+    var currentAbility = srcLocation.match(/([^/]+)\.svg/)[1];
+    var nextAbility = abilities[(abilities.indexOf(currentAbility) + 1) % abilities.length];
+    element.removeClass(currentAbility);
+    element.addClass(nextAbility);
+    img.prop("src", srcLocation.replace(currentAbility, nextAbility));
+  });
+}
+
 /**
  * Updates the placeholder in the target area to show only if there are no elements in it.
  */
@@ -281,7 +300,6 @@ function adjustPinnedAreaSize() {
  * Initializes the pin button.
  */
 function setupPin() {
-  // TODO: Include re-rolls in pinned
   // TODO: Add clear functionality to remove individual/all pins.
   $("#pin-target")
       .click(function() {
@@ -700,8 +718,9 @@ function getCurrentDamage() {
   var modifiers = getModifiers();
   var surgeAbilities = getSurgeAbilities();
   var distance = getDistance();
+  var abilities = getAbilities();
 
-  return calculateDamage(dice, modifiers, surgeAbilities, distance);
+  return calculateDamage(dice, modifiers, surgeAbilities, distance, abilities);
 }
 
 function getCurrentChartData() {
@@ -751,6 +770,14 @@ function getDice() {
     "red": target.find(".red-die").length,
     "white": target.find(".white-die").length,
     "yellow": target.find(".yellow-die").length
+  }
+}
+
+function getAbilities() {
+  var target = $("#target");
+  return {
+    "evadeToBlock": target.find(".evade-to-block").length,
+    "evadeAsBlock": target.find(".evade-as-block").length,
   }
 }
 
@@ -1045,12 +1072,13 @@ function combineDefOutcomes(outcomeArray, dieOutcomes) {
  * @param surgeAbilities array of surge ability objects, each consuming a single surge and yielding
  *    the specified modifiers (modifier name -> int)
  * @param distance int representing the ranged distance to target
+ * @param abilities object of abilities, indexed by ability name (ability name -> int)
  * @returns an array containing objects with three fields eache, "count" (int), "damage", the
  *    cumulative probability (float between 0 and 1) to deal at least "count" damage and "surge",
  *    the probability (float between 0 and 1) of having an excess surge if exactly "count" damage is
  *    dealt
  */
-function calculateDamage(dice, modifiers, surgeAbilities, distance) {
+function calculateDamage(dice, modifiers, surgeAbilities, distance, abilities) {
 
   // This is a bit of a hack, as it is likely too large to be needed
   // for most calculations. It is also potentially too small for very large

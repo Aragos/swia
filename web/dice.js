@@ -92,7 +92,7 @@ function setupTarget() {
       }
     });
 
-  target.longclick(700, function() {
+  target.longclick(500, function() {
     $("#target-menu").modal({
       showClose: false,
       popUnder: true,
@@ -210,10 +210,10 @@ function resetSurgeSource() {
 function updateTargetPlaceholderAndPin() {
   if ($("#target").find(".element").length == 0) {
     $("#target-placeholder").show();
-    $("#pin").addClass("disabled");
+    $("#pin-target").addClass("disabled");
   } else {
     $("#target-placeholder").hide();
-    $("#pin").removeClass("disabled");
+    $("#pin-target").removeClass("disabled");
   }
 }
 
@@ -242,7 +242,7 @@ function allocateColor() {
     if (!(i in colorsInUse)) {
       colorsInUse.push(i);
       if (colorsInUse.length == 14) {
-        $("#pin").addClass("disabled");
+        $("#pin-target").addClass("disabled");
       }
       return i;
     }
@@ -254,7 +254,7 @@ function allocateColor() {
  * Initializes the clear button.
  */
 function setupClear() {
-  $("#clear")
+  $("#clear-target")
       .click(function() {
         $("#target").find(".target-element").remove();
         updateTargetPlaceholderAndPin();
@@ -266,7 +266,11 @@ var pinnedDamageData = [];
 
 function adjustPinnedAreaSize() {
   var pinnedArea = $("#pinned-area");
-  if (pinnedArea.find(".pinned").length > 4) {
+  var numPinned = pinnedArea.find(".pinned").length;
+
+  if (numPinned == 0) {
+    pinnedArea.css("height", "5px"); // margin between chart and pin drop
+  } else if (numPinned > 5) {
     pinnedArea.css("height", "73px"); // normal height + 15px for horizontal scroll bar
   } else {
     pinnedArea.css("height", "58px"); // normal height
@@ -279,7 +283,7 @@ function adjustPinnedAreaSize() {
 function setupPin() {
   // TODO: Include re-rolls in pinned
   // TODO: Add clear functionality to remove individual/all pins.
-  $("#pin")
+  $("#pin-target")
       .click(function() {
         var targetElements = $("#target").find(".element");
 

@@ -309,44 +309,17 @@ h1 {
   margin: 0 1px -1px 2px;
 }
 
-/* Clearing */
-#clear {
-  background-color: #fdae6b;
-  margin: 2px 0 0 4px;
-  border: 1px solid #555;
-  cursor: default;
-  width: 45px;
-  height: 45px;
-  border-radius: 8px;
-  float: left;
-  text-align: center;
-  line-height: 45px; /* == height to center line vertically */
-}
-
 /* Pinning */
-#pin {
-  background-color: #fdae6b;
-  margin: 6px 0 0 5px; /* margin top == margin top for .pinned plus border difference */
-  border: 1px solid #555;
-  cursor: default;
-  width: 45px;
-  height: 45px;
-  border-radius: 8px;
-  float: left;
-  text-align: center;
-  line-height: 45px; /* == height to center line vertically */
-}
-
-#pin.disabled {
-  background-color: #a77347;
+#pin-target.disabled {
+  background-color: #895e3a;
   color: #444;
 }
 
 #pinned-area {
   overflow-x: auto;
   white-space: nowrap;
-  height: 58px; /* 1 * top element margin + element height + 2 * element border + 2 * element shadow */
-  width: 260px; /* 5 * element width + 5 * element left margin + 10 * element border */
+  height: 5px; /* 1 * top element margin (while there are no elements present) */
+  width: 317px; /* 7 * left element margin + 6 * element width + 12 * element border */
 }
 
 .pinned {

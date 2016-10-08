@@ -84,11 +84,23 @@
         var current = getCurrent();
         if (event.which == 27 && current.options.escapeClose) current.close();
       });
-      if (this.options.clickClose)
-        this.$blocker.click(function(e) {
-          if (e.target==this)
-            $.modal.close();
-        });
+      if (this.options.clickClose) {
+        if (this.options.popUnder && (/iphone|ipad|ipod/i).test(navigator.userAgent)) {
+          var clickCount = 0;
+          this.$blocker.click(function (e) {
+            clickCount++;
+            // If we're on an iOS device and popping under a click the release of that click will
+            // (incorrectly) trigger here so we swallow the first click.
+            if (e.target == this && clickCount > 1)
+              $.modal.close();
+          });
+        } else {
+          this.$blocker.click(function (e) {
+            if (e.target == this)
+              $.modal.close();
+          });
+        }
+      }
     },
 
     close: function() {
@@ -196,7 +208,8 @@
     showSpinner: true,
     showClose: true,
     fadeDuration: null,   // Number of milliseconds the fade animation takes.
-    fadeDelay: 1.0        // Point during the overlay's fade-in that the modal begins to fade in (.5 = 50%, 1.5 = 150%, etc.)
+    fadeDelay: 1.0,       // Point during the overlay's fade-in that the modal begins to fade in (.5 = 50%, 1.5 = 150%, etc.)
+    popUnder: false       // Whether the modal is triggered while a click is in progress (mouse/touchdown has occurred but mouse/touchdown hasn't)
   };
 
   // Event constants

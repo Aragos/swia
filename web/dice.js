@@ -92,21 +92,12 @@ function setupTarget() {
       }
     });
 
-  target.longclick(700, function(eventData) {
-    setTimeout(function() {
-      $("#target-menu").modal({
-        showClose: false,
-      });
-    }, 0);
-
-    eventData.stopImmediatePropagation();
-    eventData.preventDefault(); // Make sure long click doesn't click on modal.
-    return false;
+  target.longclick(700, function() {
+    $("#target-menu").modal({
+      showClose: false,
+      popUnder: true,
+    });
   });
-
-  // $("#target-menu-close").click(function() {
-  //   $.modal.close();
-  // });
 }
 
 function makeSingleSurgeSource() {

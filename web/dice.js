@@ -207,7 +207,8 @@ function resetSurgeSource() {
 
 var abilities = [
     "evade-as-block",
-    "evade-to-block"
+    "evade-to-block",
+    "reroll-defense"
     ];
 
 function setupAbilities() {
@@ -778,6 +779,7 @@ function getAbilities() {
   return {
     "evadeToBlock": target.find(".evade-to-block").length,
     "evadeAsBlock": target.find(".evade-as-block").length,
+    "rerollDefense": target.find(".reroll-defense").length,
   }
 }
 

@@ -102,6 +102,12 @@ h1 {
   margin: 10px 3px;
 }
 
+.reroll-defense img {
+  width: 39px;
+  height: 39px;
+  margin: 3px;
+}
+
 /* Surge */
 .surge-source {
   height: 49px; /* 2 * vertical surge element margin + surge element height + 2 * surge element border */
@@ -364,7 +370,8 @@ h1 {
   margin: 2px;
 }
 
-.pinned-element.evade-as-block img, .pinned-element.evade-to-block img {
+.pinned-element.evade-as-block img, .pinned-element.evade-to-block img,
+    .pinned-element.reroll-defense img {
   width: 9px;
   margin: 2px 0;
 }

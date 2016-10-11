@@ -206,7 +206,7 @@ function resetSurgeSource() {
 }
 
 var abilities = [
-    "evade-as-block",
+    "evade-as-block-infinite",
     "evade-to-block",
     "reroll-defense"
     ];
@@ -778,7 +778,7 @@ function getAbilities() {
   var target = $("#target");
   return {
     "evadeToBlock": target.find(".evade-to-block").length,
-    "evadeAsBlock": target.find(".evade-as-block").length,
+    "evadeAsBlockInfinite": target.find(".evade-as-block-infinite").length,
     "rerollDefense": target.find(".reroll-defense").length,
   }
 }
@@ -1074,7 +1074,9 @@ function combineDefOutcomes(outcomeArray, dieOutcomes) {
  * @param surgeAbilities array of surge ability objects, each consuming a single surge and yielding
  *    the specified modifiers (modifier name -> int)
  * @param distance int representing the ranged distance to target
- * @param abilities object of abilities, indexed by ability name (ability name -> int)
+ * @param abilities object of abilities, indexed by ability name (ability name -> int). If the
+ *    ability's name ends in "Infinite" and its count is > 0 it can be applied any number of times,
+ *    otherwise it can be applied the given number of times
  * @returns an array containing objects with three fields eache, "count" (int), "damage", the
  *    cumulative probability (float between 0 and 1) to deal at least "count" damage and "surge",
  *    the probability (float between 0 and 1) of having an excess surge if exactly "count" damage is

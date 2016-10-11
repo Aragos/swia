@@ -97,7 +97,7 @@ h1 {
   margin: 10px;
 }
 
-.evade-as-block img, .evade-to-block img {
+.evade-as-block-inifinte img, .evade-to-block img {
   width: 39px;
   margin: 10px 3px;
 }
@@ -370,7 +370,7 @@ h1 {
   margin: 2px;
 }
 
-.pinned-element.evade-as-block img, .pinned-element.evade-to-block img,
+.pinned-element.evade-as-block-infinite img, .pinned-element.evade-to-block img,
     .pinned-element.reroll-defense img {
   width: 9px;
   margin: 2px 0;
